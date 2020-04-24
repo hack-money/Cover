@@ -1,7 +1,26 @@
 pragma solidity ^0.6.6;
-import "./HegicERCPool.sol";
+import "./ERCPool.sol";
 
-abstract contract HegicOptions is Ownable, SpreadLock {
+/**
+ * @title Options Contract
+ * @author Holly Wintermute (Hegic)
+ * @author Tom French
+ * 
+ * Copyright 2020 Tom French
+ *
+ * Licensed under the GNU Lesser General Public Licence, Version 3.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+**/
+
+abstract contract Options is Ownable, SpreadLock {
   using SafeMath for uint;
 
   Option[] public options;
@@ -50,7 +69,7 @@ abstract contract HegicOptions is Ownable, SpreadLock {
     uint activation;
   }
 
-  function getHegicFee(uint amount) internal pure returns (uint fee) { fee = amount / 100; }
+  function getOwnerFee(uint amount) internal pure returns (uint fee) { fee = amount / 100; }
 
   function getPeriodFee(uint amount, uint period, uint strike, uint currentPrice) internal view returns (uint fee) {
     fee = amount.mul(sqrt(period / 10)).mul( impliedVolRate ).mul(strike).div(currentPrice).div(1e8);
@@ -66,11 +85,11 @@ abstract contract HegicOptions is Ownable, SpreadLock {
   }
 
   function fees(uint period, uint amount, uint strike) public view
-    returns (uint premium, uint hegicFee, uint strikeFee, uint slippageFee, uint periodFee) {
+    returns (uint premium, uint ownerFee, uint strikeFee, uint slippageFee, uint periodFee) {
       // TODO: We can likely get by without an oracle seeing as we deal with stablecoins
       // At least we switch to using uniswap v2 as oracle.
       uint currentPrice = uint(priceProvider.latestAnswer());
-      hegicFee = getHegicFee(amount);
+      ownerFee = getOwnerFee(amount);
       periodFee = getPeriodFee(amount, period, strike, currentPrice);
       slippageFee = getSlippageFee(amount);
       strikeFee = getStrikeFee(amount, strike, currentPrice);

@@ -1,10 +1,29 @@
 pragma solidity ^0.6.6;
-import "./HegicOptions.sol";
+import "./Options.sol";
 
-contract HegicPutOptions is HegicOptions {
+/**
+ * @title Put Options contract
+ * @author Holly Wintermute (Hegic)
+ * @author Tom French
+ * 
+ * Copyright 2020 Tom French
+ *
+ * Licensed under the GNU Lesser General Public Licence, Version 3.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+**/
+
+contract PutOptions is Options {
   constructor(IERC20 DAI, IERC20 USDC, AggregatorInterface pp, IUniswapFactory ex)
-    HegicOptions(DAI, USDC, pp, ex, HegicOptions.OptionType.Put) public {
-      pool = new HegicERCPool(DAI);
+    Options(DAI, USDC, pp, ex, Options.OptionType.Put) public {
+      pool = new ERCPool(DAI);
   }
 
   function exchange() public returns (uint) { return exchange(paymentToken.balanceOf(address(this))); }
