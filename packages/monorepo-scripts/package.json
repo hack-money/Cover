@@ -1,0 +1,20 @@
+{
+  "name": "@hack/monorepo-scripts",
+  "version": "0.1.0",
+  "description": "hack-money monorepo scripts",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hack-money/hack.git"
+  },
+  "author": "Tom French",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hack-money/hack/issues"
+  },
+  "homepage": "https://github.com/hack-money/hack#readme",
+  "scripts": {
+    "has:changed": "bash ../monorepo-scripts/ci/hasChanged.sh monorepo-scripts",
+    "lint": "eslint --ignore-path ../../.eslintignore ./"
+  }
+}
