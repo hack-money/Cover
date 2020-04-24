@@ -30,6 +30,7 @@ abstract contract HegicOptions is Ownable, SpreadLock {
     require(value >= 10000, "ImpliedVolRate limit is too small");
     impliedVolRate = value;
   }
+
   function setMaxSpread(uint value) public onlyOwner {
     require(value <= 95, "Spread limit is too large");
     maxSpread = value;
@@ -50,12 +51,15 @@ abstract contract HegicOptions is Ownable, SpreadLock {
   }
 
   function getHegicFee(uint amount) internal pure returns (uint fee) { fee = amount / 100; }
+
   function getPeriodFee(uint amount, uint period, uint strike, uint currentPrice) internal view returns (uint fee) {
     fee = amount.mul(sqrt(period / 10)).mul( impliedVolRate ).mul(strike).div(currentPrice).div(1e8);
   }
+
   function getSlippageFee(uint amount) internal pure returns (uint fee){
     if(amount > 10 ether) fee = amount.mul(amount) / 1e22;
   }
+
   function getStrikeFee(uint amount, uint strike, uint currentPrice) internal view returns (uint fee) {
     if(strike > currentPrice && optionType == OptionType.Put)  fee = (strike - currentPrice).mul(amount).div(currentPrice);
     if(strike < currentPrice && optionType == OptionType.Call) fee = (currentPrice - strike).mul(amount).div(currentPrice);
@@ -63,6 +67,8 @@ abstract contract HegicOptions is Ownable, SpreadLock {
 
   function fees(uint period, uint amount, uint strike) public view
     returns (uint premium, uint hegicFee, uint strikeFee, uint slippageFee, uint periodFee) {
+      // TODO: We can likely get by without an oracle seeing as we deal with stablecoins
+      // At least we switch to using uniswap v2 as oracle.
       uint currentPrice = uint(priceProvider.latestAnswer());
       hegicFee = getHegicFee(amount);
       periodFee = getPeriodFee(amount, period, strike, currentPrice);

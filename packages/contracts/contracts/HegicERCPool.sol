@@ -9,6 +9,7 @@ contract HegicERCPool is IERCLiquidityPool, Ownable, ERC20("Hegic DAI LP Token",
     constructor(IERC20 _token) public { token = _token; }
 
     function availableBalance() public view returns (uint balance) {balance = totalBalance().sub(lockedAmount);}
+    
     function totalBalance() public override view returns (uint balance) { balance = token.balanceOf(address(this));}
 
     function provide(uint amount, uint minMint) public returns (uint mint) {
