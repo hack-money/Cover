@@ -11,14 +11,16 @@ abstract contract HegicOptions is Ownable, SpreadLock {
   uint constant activationTime = 15 minutes;
   AggregatorInterface public priceProvider;
   IUniswapFactory public exchanges;
-  IERC20 token;
-  ILiquidityPool public pool;
+  IERC20 paymentToken;
+  IERC20 poolToken;
+  IERCLiquidityPool public pool;
   OptionType private optionType;
   bool public override highSpreadLockEnabled;
 
 
-  constructor(IERC20 DAI, AggregatorInterface pp, IUniswapFactory ex, OptionType t) public {
-    token = DAI;
+  constructor(IERC20 DAI, IERC20 USDC, AggregatorInterface pp, IUniswapFactory ex, OptionType t) public {
+    paymentToken = USDC;
+    poolToken = DAI;
     priceProvider = pp;
     exchanges = ex;
     optionType = t;
