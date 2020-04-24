@@ -34,6 +34,7 @@
     "terminal-kit": "^1.35.1"
   },
   "devDependencies": {
+    "@chainlink/contracts": "^0.0.3",
     "@nomiclabs/buidler": "^1.2.0",
     "@nomiclabs/buidler-etherscan": "^1.2.0",
     "@nomiclabs/buidler-truffle5": "^1.2.0",
