@@ -113,7 +113,7 @@ contract PutOptions is Options {
       option.state = State.Expired;
 
       uint amount = exchange();
-      pool.send(option.holder, option.strikeAmount);
+      pool.sendTokens(option.holder, option.strikeAmount);
       emit Exercise(optionID, amount);
   }
 }

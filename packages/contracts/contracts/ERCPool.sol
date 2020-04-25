@@ -120,7 +120,7 @@ contract ERCPool is IERCLiquidityPool, Ownable, ERC20("DAI LP Token", "writeDAI"
   /// @dev send tokens from the pool to an address
   /// @param to the address which to send tokens to
   /// @param amount the number of tokens to send
-  function send(address payable to, uint amount) public override onlyOwner {
+  function sendTokens(address payable to, uint amount) public override onlyOwner {
     require(lockedAmount >= amount, "Pool: Insufficient locked funds");
     lockedAmount -= amount;
     require(

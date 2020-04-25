@@ -61,7 +61,7 @@ interface ILiquidityPool {
     function totalBalance() external view returns (uint amount);
     function lock(uint amount) external;
     function unlock(uint amount) external;
-    function send(address payable account, uint amount) external;
+    function sendTokens(address payable account, uint amount) external;
 }
 
 interface IERCLiquidityPool is ILiquidityPool {
