@@ -48,7 +48,7 @@ contract ERCPool is IERCLiquidityPool, Ownable, ERC20("DAI LP Token", "writeDAI"
   /// @dev provides liquidity to the pool
   /// @param amount the number of tokens which are to be added to the pool
   /// @return mint the number of LP tokens minted  
-  function provide(uint amount) public returns (uint mint) {
+  function provide(uint amount) internal returns (uint mint) {
     require(!SpreadLock(owner()).highSpreadLockEnabled(), "Pool: Locked");
     if(totalSupply().mul(totalBalance()) == 0)
       mint = amount.mul(1000);
@@ -78,7 +78,7 @@ contract ERCPool is IERCLiquidityPool, Ownable, ERC20("DAI LP Token", "writeDAI"
   /// @dev withdraws liquidity from the pool
   /// @param amount the number of tokens which are to be withdrawn from the pool
   /// @return burn the number of LP tokens burned
-  function withdraw(uint amount) public returns (uint burn) {
+  function withdraw(uint amount) internal returns (uint burn) {
     require(amount <= availableBalance(), "Pool: Insufficient unlocked funds");
     burn = amount.mul(totalSupply()).div(totalBalance());
     require(burn <= balanceOf(msg.sender), "Pool: Amount is too large");
