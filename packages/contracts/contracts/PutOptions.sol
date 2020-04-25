@@ -5,7 +5,7 @@ import "./Options.sol";
  * @title Put Options contract
  * @author Holly Wintermute (Hegic)
  * @author Tom French
- * 
+ *
  * Copyright 2020 Tom French
  *
  * Licensed under the GNU Lesser General Public Licence, Version 3.0 (the "License");
@@ -26,8 +26,16 @@ contract PutOptions is Options {
       pool = new ERCPool(DAI);
   }
 
+  /// @dev Exchanges the contract's current payment token balance into the pool token.
+  ///      The pool tokens are then sent to the liquidity pool.
+  /// @return exchangedAmount The amount of pool tokens sent to the pool
   function exchange() public returns (uint) { return exchange(paymentToken.balanceOf(address(this))); }
 
+
+  /// @dev Exchange an amount of payment token into the pool token.
+  ///      The pool tokens are then sent to the liquidity pool.
+  /// @param amount The amount of payment token to be exchanged
+  /// @return exchangedAmount The amount of pool tokens sent to the pool
   function exchange(uint amount) public returns (uint exchangedAmount) {
     // TODO: switch to using uniswap V2 to exchange tokens
     UniswapExchangeInterface ex = exchanges.getExchange(paymentToken);
@@ -42,10 +50,27 @@ contract PutOptions is Options {
     // }
   }
 
+
+  /**
+    * @dev Create an option to buy pool tokens at the current price
+    *
+    * @param period the period of time for which the option is valid
+    * @param amount [placeholder]
+    * @return optionID A uint object representing the ID number of the created option.
+    */
   function create(uint period, uint amount) public returns (uint optionID) {
     return create(period, amount, uint(priceProvider.latestAnswer()));
   }
 
+
+  /**
+    * @dev Create an option to buy pool tokens
+    *
+    * @param period the period of time for which the option is valid
+    * @param amount [placeholder]
+    * @param strike the strike price of the option to be created
+    * @return optionID A uint object representing the ID number of the created option.
+    */
   function create(uint period, uint amount, uint strike) public returns (uint optionID) {
       (uint premium, uint fee,,,) = fees(period, amount, strike);
       uint strikeAmount = strike.mul(amount) / priceDecimals;
@@ -68,6 +93,8 @@ contract PutOptions is Options {
       emit Create(optionID, msg.sender, fee, premium);
   }
 
+  /// @dev Exercise an option to claim the pool tokens
+  /// @param optionID The ID number of the option which is to be exercised
   function exercise(uint optionID) public payable {
       Option storage option = options[optionID];
 
