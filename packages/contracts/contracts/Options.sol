@@ -125,7 +125,7 @@ abstract contract Options is Ownable, SpreadLock {
   /// @dev Unlocks collateral an expired option.
   ///      This is done as it can no longer be exercised.
   /// @param optionID The id number of the expired option for which the collateral is to be unlocked
-  function unlock(uint optionID) internal {
+  function unlock(uint optionID) public {
       Option storage option = options[optionID];
       require(option.expiration < now, "Option has not expired yet");
       require(option.state == State.Active, "Option is not active");
