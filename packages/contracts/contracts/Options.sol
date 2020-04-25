@@ -118,7 +118,7 @@ abstract contract Options is Ownable, SpreadLock {
   ///      This is done as it can no longer be exercised.
   /// @param optionIDs An array of IDs for expired options
   function unlock(uint[] memory optionIDs) public {
-    for(uint i; i < options.length; unlock(optionIDs[i++])){}
+    for(uint i; i < optionIDs.length; unlock(optionIDs[i++])){}
   }
 
 
