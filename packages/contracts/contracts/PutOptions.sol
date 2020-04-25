@@ -29,14 +29,14 @@ contract PutOptions is Options {
   /// @dev Exchanges the contract's current payment token balance into the pool token.
   ///      The pool tokens are then sent to the liquidity pool.
   /// @return exchangedAmount The amount of pool tokens sent to the pool
-  function exchange() public returns (uint) { return exchange(paymentToken.balanceOf(address(this))); }
+  function exchange() internal returns (uint) { return exchange(paymentToken.balanceOf(address(this))); }
 
 
   /// @dev Exchange an amount of payment token into the pool token.
   ///      The pool tokens are then sent to the liquidity pool.
   /// @param amount The amount of payment token to be exchanged
   /// @return exchangedAmount The amount of pool tokens sent to the pool
-  function exchange(uint amount) public returns (uint exchangedAmount) {
+  function exchange(uint amount) internal returns (uint exchangedAmount) {
     // TODO: switch to using uniswap V2 to exchange tokens
     UniswapExchangeInterface ex = exchanges.getExchange(paymentToken);
     // solium-disable-next-line security/no-block-members
