@@ -97,7 +97,7 @@ contract PutOptions is Options {
 
   /// @dev Exercise an option to claim the pool tokens
   /// @param optionID The ID number of the option which is to be exercised
-  function exercise(uint optionID) public payable {
+  function exercise(uint optionID) public {
       Option storage option = options[optionID];
 
       require(option.expiration >= now, 'Option has expired'); // solium-disable-line security/no-block-members
