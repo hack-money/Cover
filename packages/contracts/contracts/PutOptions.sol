@@ -39,6 +39,7 @@ contract PutOptions is Options {
   function exchange(uint amount) public returns (uint exchangedAmount) {
     // TODO: switch to using uniswap V2 to exchange tokens
     UniswapExchangeInterface ex = exchanges.getExchange(paymentToken);
+    // solium-disable-next-line security/no-block-members
     exchangedAmount = ex.tokenToTokenTransferInput(amount, 1, 1, now + 1 minutes, address(pool), address(pool.token()));
     // uint exShare = ex.getEthToTokenInputPrice(1 ether); //e18
     // if( exShare > maxSpread.mul(uint(priceProvider.latestAnswer())).mul(1e8) ){
@@ -88,6 +89,7 @@ contract PutOptions is Options {
       exchange();
       pool.lock(strikeAmount);
       optionID = options.length;
+      // solium-disable-next-line security/no-block-members
       options.push(Option(State.Active, msg.sender, strikeAmount, amount, now + period, now + activationTime));
 
       emit Create(optionID, msg.sender, fee, premium);
@@ -98,8 +100,8 @@ contract PutOptions is Options {
   function exercise(uint optionID) public payable {
       Option storage option = options[optionID];
 
-      require(option.expiration >= now, 'Option has expired');
-      require(option.activation <= now, 'Option has not been activated yet');
+      require(option.expiration >= now, 'Option has expired'); // solium-disable-line security/no-block-members
+      require(option.activation <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
       require(option.holder == msg.sender, "Wrong msg.sender");
       require(option.state == State.Active, "Wrong state");
 
