@@ -54,7 +54,10 @@ contract PutOptions is Options {
       require(fee < premium,  "Premium is too small");
       require(period >= 1 days,"Period is too short");
       require(period <= 8 weeks,"Period is too long");
-      require(paymentToken.balanceOf(address(this)) == premium, "Wrong value");
+      require(
+        paymentToken.transferFrom(msg.sender, address(this), premium),
+        "Insufficient funds"
+      );
 
       paymentToken.transfer(owner(), fee);
       exchange();
