@@ -2,6 +2,8 @@ usePlugin("@nomiclabs/buidler-truffle5");
 usePlugin("@nomiclabs/buidler-etherscan");
 require("dotenv").config({ path: ".env.development" });
 
+usePlugin("@nomiclabs/buidler-waffle");
+
 // This is a sample Buidler task. To learn how to create your own go to
 // https://buidler.dev/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
