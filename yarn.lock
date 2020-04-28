@@ -1182,10 +1182,10 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@openzeppelin/contracts@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.0.0.tgz#89bc0d32fc9eb257cf6499f2497a1b4a6715f186"
-  integrity sha512-u7oATjUK6jffDOoIjVQ7vJ2fnFKlfDS1CJzrMpp+YtGQ2fhdSk0kXjZTxk8Pj1SPVZRNES3yo0r144v8BsuRhQ==
+"@openzeppelin/contracts@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.0.1.tgz#2f327f77d16b43f14674086b2b634bda38cb0838"
+  integrity sha512-uSrD7hZ0ViuHGqHZbeHawZBi/uy7aBiNramXAt2dFFuSuoU4u9insS3V3zdVfOnYSPreUo636xSOuQIFN4//HA==
 
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"
@@ -7750,11 +7750,6 @@ opencollective-postinstall@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.2.tgz#5657f1bede69b6e33a45939b061eb53d3c6c3a89"
   integrity sha512-pVOEP16TrAO2/fjej1IdOyupJY8KDUM1CvsaScRbw6oddvpQoOfGk4ywha0HKKVAD6RkW4x6Q+tNBwhf3Bgpuw==
-
-openzeppelin-solidity@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-3.0.1.tgz#1f3bfe096e28a76c4aca2529a7133414b61a8943"
-  integrity sha512-tDeF+fpu+EmVzFb7IR7XW4bU73V7z3j86GBaPc9ub7nbNqWu32bGnGxgitwFbmybsB7QIPhXTZ+UUlEOQouTOQ==
 
 os-homedir@^1.0.0:
   version "1.0.2"
