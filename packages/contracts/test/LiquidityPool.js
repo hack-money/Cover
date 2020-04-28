@@ -8,29 +8,38 @@ const {
 } = require('ethereum-waffle');
 const { randomHex } = require('web3-utils');
 const LiquidityPool = require('../build/LiquidityPool.json');
+const ERC20Mintable = require('../build/ERC20Mintable.json');
 
 use(solidity);
 
 const provider = new MockProvider();
 const [wallet] = provider.getWallets();
 
-async function deployLiquidityPool(initialValue) {
-  const liquidityPool = await deployContract(
+async function deployTestContract(contractArtifact, constructorArgument) {
+  const deployedContract = await deployContract(
     wallet, // a wallet to sign transactions
-    LiquidityPool, // the compiled output
-    initialValue
+    contractArtifact, // the compiled output
+    constructorArgument
   );
-  return liquidityPool; // an ethers 'Contract' class instance
+  return deployedContract; // an ethers 'Contract' class instance
 }
 
 describe('LiquidityPool', async () => {
   let liquidityPool;
-  const erc20Address = randomHex(20);
+  let erc20;
   const deposit = 10;
   const withdraw = 3;
 
   beforeEach(async () => {
-    liquidityPool = await deployLiquidityPool(erc20Address);
+    erc20 = await deployTestContract(ERC20Mintable);
+    liquidityPool = await deployTestContract(LiquidityPool, [erc20.address]);
+
+    // mint ERC20 tokens to liquidityPool to aid testing flow - pool needs to start with tokens
+    await erc20.mint(liquidityPool.address, 100);
+
+    const userTokens = 20;
+    await erc20.mint(wallet.address, userTokens);
+    await erc20.approve(liquidityPool.address, userTokens);
   });
 
   it('should set owner of pool', async () => {
@@ -40,12 +49,12 @@ describe('LiquidityPool', async () => {
 
   it('should set linked ERC20 token', async () => {
     const linkedToken = await liquidityPool.getLinkedToken();
-    expect(linkedToken).to.equal(erc20Address);
+    expect(linkedToken).to.equal(erc20.address);
   });
 
   it('should add liquidity to the pool', async () => {
-    const { receipt } = await liquidityPool.deposit(deposit);
-    expect(receipt.status).to.equal(true);
+    const receipt = await liquidityPool.deposit(deposit);
+    expect(receipt).to.not.equal(undefined);
   });
 
   it('should mint appropriate number of LP tokens on liquidity addition', async () => {
@@ -57,8 +66,8 @@ describe('LiquidityPool', async () => {
   });
 
   it('should withdraw liquidity from the pool', async () => {
-    const { receipt } = await liquidityPool.withdraw(withdraw);
-    expect(receipt.status).to.equal(true);
+    const receipt = await liquidityPool.withdraw(withdraw);
+    expect(receipt).to.not.equal(undefined);
   });
 
   it('should burn appropriate number of LP tokens on liquidity withdraw', async () => {

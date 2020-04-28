@@ -15,7 +15,6 @@ contract LiquidityPool is Ownable, ERC20 {
     using SafeMath for uint256;
     address public linkedToken;
 
-    event Debug(string key, uint value);
     event Deposit(address indexed user, address indexed liquidityPool, uint256 amount);
     event Withdraw(address indexed user, address indexed liquidityPool, uint256 amount);
 
@@ -36,7 +35,7 @@ contract LiquidityPool is Ownable, ERC20 {
         require(amount != uint256(0), 'Pool/can not deposit 0');
         require(getPoolBalance() > uint256(0), 'Pool/empty pool, can not deposit');
         emit Debug('balance: ', getPoolBalance());
-        
+
         // user is minted a number of LP tokens according to the proption of 
         uint256 proportionOfPool = amount.div(getPoolBalance());
         uint256 numLPTokensToMint = proportionOfPool.mul(totalSupply());
