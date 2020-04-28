@@ -21,7 +21,10 @@ contract LiquidityPool is Ownable, ERC20 {
     // Link the pool to an ERC20 token on deploy
     constructor(address erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         require(erc20 != address(0x0));
-        linkedToken = erc20;   
+        linkedToken = erc20;
+
+        // mint owner 1 LP token
+        _mint(owner(), 1);
     }
 
     /**
@@ -33,11 +36,10 @@ contract LiquidityPool is Ownable, ERC20 {
      */
     function deposit(uint256 amount) public returns (bool) {
         require(amount != uint256(0), 'Pool/can not deposit 0');
-        require(getPoolBalance() > uint256(0), 'Pool/empty pool, can not deposit');
-        emit Debug('balance: ', getPoolBalance());
+        require(getPoolERC20Balance() > uint256(0), 'Pool/pool has 0 ERC20 tokens');
 
         // user is minted a number of LP tokens according to the proption of 
-        uint256 proportionOfPool = amount.div(getPoolBalance());
+        uint256 proportionOfPool = amount.div(getPoolERC20Balance());
         uint256 numLPTokensToMint = proportionOfPool.mul(totalSupply());
         _mint(msg.sender, numLPTokensToMint);
 
@@ -56,12 +58,15 @@ contract LiquidityPool is Ownable, ERC20 {
      */
     function withdraw(uint256 amount) public returns (bool) {
         require(amount != uint256(0), 'Pool/can not withdraw 0');
+        require(totalSupply() > uint256(0), 'Pool/no LP tokens minted');
 
-        uint256 poolBalance = getPoolBalance();
-        require(amount <= poolBalance, 'Pool/insufficient pool balance');
+        uint256 poolERC20Balance = getPoolERC20Balance();
+        require(amount <= poolERC20Balance, 'Pool/insufficient pool balance');
 
-        uint256 proportionOfPool = amount.div(poolBalance);
+        uint256 proportionOfPool = amount.div(poolERC20Balance);
         uint256 numLPTokensToBurn = proportionOfPool.mul(totalSupply());
+        
+        require(balanceOf(msg.sender) != uint256(0), 'Pool/user has no LP tokens');
         require(numLPTokensToBurn <= balanceOf(msg.sender), 'Pool/not enough LP tokens to burn');
         _burn(msg.sender, numLPTokensToBurn);
 
@@ -76,14 +81,14 @@ contract LiquidityPool is Ownable, ERC20 {
     /**
     * @dev Get the number of tokens a user has deposited
      */
-    function getUserDeposit(address user) public view returns (uint256) {
-        return IERC20(linkedToken).balanceOf(user);
+    function getUserLPBalance(address user) public view returns (uint256) {
+        return balanceOf(user);
     }
 
     /**
     * @dev Get the total number of DAI tokens deposited into the liquidity pool
      */
-    function getPoolBalance() public view returns (uint256) {
+    function getPoolERC20Balance() public view returns (uint256) {
         return IERC20(linkedToken).balanceOf(address(this));
     } 
 
