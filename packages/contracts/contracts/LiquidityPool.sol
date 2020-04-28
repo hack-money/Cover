@@ -1,7 +1,7 @@
 pragma solidity >=0.6.0 <0.7.0;
 
-import {Ownable} from 'openzeppelin-solidity/contracts/access/Ownable.sol';
-import {SafeMath} from 'openzeppelin-solidity/contracts/Math/SafeMath.sol';
+import { Ownable } from 'openzeppelin-solidity/contracts/access/Ownable.sol';
+import { SafeMath } from 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 /**
 * @title LiquidityPool
 * @author Tom Waite, Tom French
