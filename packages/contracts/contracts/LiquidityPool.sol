@@ -18,7 +18,6 @@ contract LiquidityPool is Ownable, ERC20 {
     event Deposit(address indexed user, address indexed liquidityPool, uint256 amount);
     event Withdraw(address indexed user, address indexed liquidityPool, uint256 amount);
 
-    // Link the pool to an ERC20 token on deploy
     constructor(address erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         require(erc20 != address(0x0));
         linkedToken = erc20;
@@ -32,13 +31,11 @@ contract LiquidityPool is Ownable, ERC20 {
     * to this smart contract, and simultaneously mints the user a number of LP tokens
 
     * @param amount Number of ERC20 tokens to transfer to pool
-    * @return success statement - bool determining whether liquidity add was successfull
      */
-    function deposit(uint256 amount) public returns (bool) {
+    function deposit(uint256 amount) public {
         require(amount != uint256(0), 'Pool/can not deposit 0');
         require(getPoolERC20Balance() > uint256(0), 'Pool/pool has 0 ERC20 tokens');
 
-        // user is minted a number of LP tokens according to the proption of 
         uint256 proportionOfPool = amount.div(getPoolERC20Balance());
         uint256 numLPTokensToMint = proportionOfPool.mul(totalSupply());
         _mint(msg.sender, numLPTokensToMint);
@@ -54,9 +51,8 @@ contract LiquidityPool is Ownable, ERC20 {
     /**
     * @dev Withdraw liquidity from the pool
     * @param amount Number of ERC20 tokens to withdraw 
-    * @return success statement - bool determining whether liquidity withdraw was successfull
      */
-    function withdraw(uint256 amount) public returns (bool) {
+    function withdraw(uint256 amount) public {
         require(amount != uint256(0), 'Pool/can not withdraw 0');
         require(totalSupply() > uint256(0), 'Pool/no LP tokens minted');
 

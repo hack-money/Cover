@@ -1,13 +1,13 @@
 pragma solidity >=0.6.0 <0.7.0;
 
 interface ILiquidityPool {
-    function deposit(uint256 amount) external returns (bool);
+    function deposit(uint256 amount) external;
 
-    function withdraw() external returns (bool);
+    function withdraw(uint256 amount) external;
 
-    function getShareOfAssets() external returns (uint256);
+    function getUserLPBalance(address user) view external returns (uint256);
 
-    function getLinkedToken() external view returns (address);
+    function getPoolERC20Balance() external view returns (uint256);
     
-    function getUserDeposit() external view returns (uint256);
+    function getLinkedToken() external view returns (uint256);
 }
