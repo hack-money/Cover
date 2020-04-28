@@ -44,28 +44,28 @@ describe('LiquidityPool', async () => {
   });
 
   it('should add liquidity to the pool', async () => {
-    const { receipt } = await liquidityPool.addLiquidity(deposit);
+    const { receipt } = await liquidityPool.deposit(deposit);
     expect(receipt.status).to.equal(true);
   });
 
   it('should mint appropriate number of LP tokens on liquidity addition', async () => {
     const expectedPostMintTokens = deposit;
 
-    await liquidityPool.addLiquidity(deposit);
+    await liquidityPool.deposit(deposit);
     const numLPTokens = await liquidityPool.getUserLPTokens();
     expect(numLPTokens).to.equal(expectedPostMintTokens);
   });
 
   it('should withdraw liquidity from the pool', async () => {
-    const { receipt } = await liquidityPool.withdrawLiquidity(withdraw);
+    const { receipt } = await liquidityPool.withdraw(withdraw);
     expect(receipt.status).to.equal(true);
   });
 
   it('should burn appropriate number of LP tokens on liquidity withdraw', async () => {
     const expectedPostBurnTokens = deposit - withdraw;
     
-    await liquidityPool.addLiquidity(deposit);
-    await liquidityPool.withdrawLiquidity(withdraw);
+    await liquidityPool.deposit(deposit);
+    await liquidityPool.withdraw(withdraw);
     const numLPTokens = await liquidityPool.getUserLPTokens();
     expect(numLPTokens).to.equal(expectedPostBurnTokens);
   });
