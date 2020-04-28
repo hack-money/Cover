@@ -9,22 +9,20 @@ use(solidity);
 const provider = new MockProvider();
 const [wallet] = provider.getWallets();
 
-async function deployToken(initialValue) {
-    const erc20 = await deployContract(
-        wallet, // a wallet to sign transactions
-        ERC20Mintable, // the compiled output
-        initialValue
-    );
-    return erc20; // an ethers 'Contract' class instance
+function deployNamedContract(contract, initialValue) {
+  return deployContract(
+      wallet, // a wallet to sign transactions
+      contract, // the compiled output
+      initialValue
+  ); // an ethers 'Contract' class instance
 }
 
-async function deployLiquidityPool(initialValue) {
-    const liquidityPool = await deployContract(
-        wallet, // a wallet to sign transactions
-        LiquidityPool, // the compiled output
-        initialValue
-    );
-    return liquidityPool; // an ethers 'Contract' class instance
+function deployToken(initialValue) {
+  return deployNamedContract(ERC20Mintable, initialValue)
+}
+
+function deployLiquidityPool(initialValue) {
+    return deployNamedContract(LiquidityPool, initialValue)
 }
 
 describe('LiquidityPool', async () => {
