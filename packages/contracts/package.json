@@ -15,6 +15,7 @@
   "scripts": {
     "build": "waffle",
     "compile": "buidler compile",
+    "commit": "git-cz",
     "clean": "buidler clean",
     "deploy": "buidler run scripts/deploy.js",
     "export": "buidler run scripts/export.js",
@@ -42,7 +43,6 @@
     "bignumber.js": "^9.0.0",
     "chai": "^4.2.0",
     "chai-bignumber": "^3.0.0",
-    "cz-conventional-changelog": "3.1.0",
     "ethereum-waffle": "^2.4.1",
     "ethers": "^4.0.47",
     "ganache-time-traveler": "^1.0.14",
