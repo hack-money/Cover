@@ -14,13 +14,13 @@ import { ILiquidityPool } from './interfaces/ILiquidityPool.sol';
  */
 contract LiquidityPool is ILiquidityPool, Ownable, ERC20 {
     using SafeMath for uint256;
-    address public linkedToken;
+    IERC20 public override linkedToken;
 
     event Deposit(address indexed user, address indexed liquidityPool, uint256 amount);
     event Withdraw(address indexed user, address indexed liquidityPool, uint256 amount);
 
-    constructor(address erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
-        require(erc20 != address(0x0));
+    constructor(IERC20 erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
+        require(address(erc20) != address(0x0));
         linkedToken = erc20;
 
         // mint owner 1 LP token
@@ -42,7 +42,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20 {
         _mint(msg.sender, numLPTokensToMint);
 
         require(
-            IERC20(linkedToken).transferFrom(msg.sender, address(this), amount),
+            linkedToken.transferFrom(msg.sender, address(this), amount),
             'Pool/insufficient user funds to deposit'
         );
 
@@ -68,7 +68,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20 {
         _burn(msg.sender, numLPTokensToBurn);
 
         require(
-            IERC20(linkedToken).transfer(msg.sender, amount),
+            linkedToken.transfer(msg.sender, amount),
             'Pool/insufficient user funds to withdraw'
         );
 
@@ -86,13 +86,6 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20 {
     * @dev Get the total number of DAI tokens deposited into the liquidity pool
      */
     function getPoolERC20Balance() public view override returns (uint256) {
-        return IERC20(linkedToken).balanceOf(address(this));
-    } 
-
-    /**
-    * @dev Get the address of the ERC20 token the pool is linked to
-     */
-    function getLinkedToken() public view override returns (address) {
-        return linkedToken;
+        return linkedToken.balanceOf(address(this));
     }
 }

@@ -48,7 +48,7 @@ describe('LiquidityPool', async () => {
   });
 
   it('should set linked ERC20 token', async () => {
-    const linkedToken = await liquidityPool.getLinkedToken();
+    const linkedToken = await liquidityPool.linkedToken();
     expect(linkedToken).to.equal(erc20.address);
   });
 
