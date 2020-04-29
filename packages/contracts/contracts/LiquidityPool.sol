@@ -4,6 +4,7 @@ import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
 import { SafeMath } from '@openzeppelin/contracts/math/SafeMath.sol';
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import { ILiquidityPool } from './interfaces/ILiquidityPool.sol';
 
 /**
 * @title LiquidityPool
@@ -11,7 +12,7 @@ import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 * @dev Base liquidity pool contract, for which users can deposit and withdraw liquidity
 * Copyright 2020 Tom Waite, Tom French
  */
-contract LiquidityPool is Ownable, ERC20 {
+contract LiquidityPool is ILiquidityPool, Ownable, ERC20 {
     using SafeMath for uint256;
     address public linkedToken;
 
@@ -32,7 +33,7 @@ contract LiquidityPool is Ownable, ERC20 {
 
     * @param amount Number of ERC20 tokens to transfer to pool
      */
-    function deposit(uint256 amount) public {
+    function deposit(uint256 amount) public override {
         require(amount != uint256(0), 'Pool/can not deposit 0');
         require(getPoolERC20Balance() > uint256(0), 'Pool/pool has 0 ERC20 tokens');
 
@@ -52,7 +53,7 @@ contract LiquidityPool is Ownable, ERC20 {
     * @dev Withdraw liquidity from the pool
     * @param amount Number of ERC20 tokens to withdraw 
      */
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount) public override {
         require(amount != uint256(0), 'Pool/can not withdraw 0');
         require(totalSupply() > uint256(0), 'Pool/no LP tokens minted');
 
@@ -77,21 +78,21 @@ contract LiquidityPool is Ownable, ERC20 {
     /**
     * @dev Get the number of tokens a user has deposited
      */
-    function getUserLPBalance(address user) public view returns (uint256) {
+    function getUserLPBalance(address user) public view override returns (uint256) {
         return balanceOf(user);
     }
 
     /**
     * @dev Get the total number of DAI tokens deposited into the liquidity pool
      */
-    function getPoolERC20Balance() public view returns (uint256) {
+    function getPoolERC20Balance() public view override returns (uint256) {
         return IERC20(linkedToken).balanceOf(address(this));
     } 
 
     /**
     * @dev Get the address of the ERC20 token the pool is linked to
      */
-    function getLinkedToken() public view returns (address) {
+    function getLinkedToken() public view override returns (address) {
         return linkedToken;
     }
 }

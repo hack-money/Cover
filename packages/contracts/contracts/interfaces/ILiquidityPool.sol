@@ -9,5 +9,5 @@ interface ILiquidityPool {
 
     function getPoolERC20Balance() external view returns (uint256);
     
-    function getLinkedToken() external view returns (uint256);
+    function getLinkedToken() external view returns (address);
 }
