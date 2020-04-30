@@ -31,8 +31,8 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
 
     event Deposit(address indexed user, address indexed liquidityPool, uint256 amount);
     event Withdraw(address indexed user, address indexed liquidityPool, uint256 amount);
-    event DepositAave(uint256 transferAmount);
-    event RedeemAave(uint256 redeemAmount);
+    event DepositAave(address indexed owner, uint256 transferAmount);
+    event RedeemAave(address indexed owner, uint256 redeemAmount);
 
     constructor() public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         // mint owner 1 LP token
@@ -74,7 +74,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
             'Pool/not able to deposit to Aave'
         )
 
-        emit DepositAave(transferAmount);
+        emit DepositAave(owner(), transferAmount);
     }
 
     /**
@@ -101,6 +101,26 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
         );
 
         emit Withdraw(msg.sender, address(this), amount);
+    }
+
+    /**
+    * @dev Redeem aDAI for the underlying asset, resulting in the aTokens being burnt
+    * Protected by onlyOwner
+     */
+    function redeemWithAave(uint256 redeemAmount) public override onlyOwner {
+        aTokenInstance.redeem(redeemAmount);
+        emit RedeemAave(owner(), redeemAmount);
+    };
+
+    /**
+    * @dev Transfer aTokens from this contract to another address
+    * Protected by onlyOwner
+     */
+    function transferATokens(uint256 amount, address recipient) public override onlyOwner {
+        require(receiver != address(0x0));
+        require(amount != uint256(0));
+
+        aTokenInstance.transfer(recipient, amount);
     }
 
     /**
