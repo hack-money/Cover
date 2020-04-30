@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/hack-money/hack#readme",
   "scripts": {
-    "build": "waffle",
+    "build": "waffle .waffle.json",
     "compile": "buidler compile",
     "commit": "git-cz",
     "clean": "buidler clean",

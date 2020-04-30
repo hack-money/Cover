@@ -1,12 +1,11 @@
-pragma solidity >=0.6.0 <0.7.0;
+pragma solidity >=0.5.0 <0.6.0;
 
 import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
 import { SafeMath } from '@openzeppelin/contracts/math/SafeMath.sol';
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import { ILendingPoolAddressesProvider } from "@studydefi/money-legos/aave/contracts/ILendingPoolAddressesProvider.sol";
-import { ILendingPool } from "@studydefi/money-legos/aave/contracts/ILendingPool.sol"
-
+import { ILendingPool } from "@studydefi/money-legos/aave/contracts/ILendingPool.sol";
 import { ILiquidityPool } from './interfaces/ILiquidityPool.sol';
 
 /**
@@ -19,7 +18,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
     using SafeMath for uint256;
 
     // mainnet addresses
-    address public override linkedTokenAddress = 0x6b175474e89094c44da98b954eedeac495271d0f;
+    address public linkedTokenAddress = 0x6b175474e89094c44da98b954eedeac495271d0f;
     address aaveAddressesProviderAddress = 0x24a42fD28C976A61Df5D00D0599C34c4f90748c8;
     address aDaiAddress = 0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d;
 
@@ -45,7 +44,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
 
     * @param amount Number of ERC20 tokens to transfer to pool
      */
-    function deposit(uint256 amount) public override {
+    function deposit(uint256 amount) public {
         require(amount != uint256(0), 'Pool/can not deposit 0');
         require(getPoolERC20Balance() > uint256(0), 'Pool/pool has 0 ERC20 tokens');
 
@@ -65,14 +64,14 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
     * @dev Transfer an amount of this pool's funds to the Aave pool and receive
     * aTokens in return 
      */
-    function transferToAave(uint256 transferAmount) public override onlyOwner {
+    function transferToAave(uint256 transferAmount) public  onlyOwner {
         uint16 referral = 0;
         IERC20(linkedTokenAddress).approve(provider.getLendingPoolCore(), transferAmount);
         
         require(
             lendingPool.deposit(linkedTokenAddress, transferAmount, referral),
             'Pool/not able to deposit to Aave'
-        )
+        );
 
         emit DepositAave(owner(), transferAmount);
     }
@@ -81,7 +80,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
     * @dev Withdraw liquidity from the pool
     * @param amount Number of ERC20 tokens to withdraw 
      */
-    function withdraw(uint256 amount) public override {
+    function withdraw(uint256 amount) public {
         require(amount != uint256(0), 'Pool/can not withdraw 0');
         require(totalSupply() > uint256(0), 'Pool/no LP tokens minted');
 
@@ -107,16 +106,16 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
     * @dev Redeem aDAI for the underlying asset, resulting in the aTokens being burnt
     * Protected by onlyOwner
      */
-    function redeemWithAave(uint256 redeemAmount) public override onlyOwner {
+    function redeemWithAave(uint256 redeemAmount) public  onlyOwner {
         aTokenInstance.redeem(redeemAmount);
-        emit RedeemAave(owner(), redeemAmount);
-    };
+        // emit RedeemAave(owner(), redeemAmount);
+    }
 
     /**
     * @dev Transfer aTokens from this contract to another address
     * Protected by onlyOwner
      */
-    function transferATokens(uint256 amount, address recipient) public override onlyOwner {
+    function transferATokens(uint256 amount, address recipient) public  onlyOwner {
         require(receiver != address(0x0));
         require(amount != uint256(0));
 
@@ -126,14 +125,14 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
     /**
     * @dev Get the number of tokens a user has deposited
      */
-    function getUserLPBalance(address user) public view override returns (uint256) {
+    function getUserLPBalance(address user) public view  returns (uint256) {
         return balanceOf(user);
     }
 
     /**
     * @dev Get the total number of DAI tokens deposited into the liquidity pool
      */
-    function getPoolERC20Balance() public view override returns (uint256) {
+    function getPoolERC20Balance() public view  returns (uint256) {
         return IERC20(linkedTokenAddress).balanceOf(address(this));
     }
 }
