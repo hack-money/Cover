@@ -20,7 +20,7 @@
     "deploy": "buidler run scripts/deploy.js",
     "export": "buidler run scripts/export.js",
     "has:changed": "bash ../monorepo-scripts/ci/hasChanged.sh contracts",
-    "test": "waffle && mocha --timeout 100000",
+    "test": "waffle && mocha test/**/*.js --timeout 100000",
     "lint:js": "eslint --config .eslintrc.js ./test",
     "lint:sol": "solhint \"contracts/**/*.sol\""
   },
@@ -41,7 +41,7 @@
     "@nomiclabs/buidler-etherscan": "^1.2.0",
     "@nomiclabs/buidler-waffle": "^1.3.0",
     "@openzeppelin/contracts": "^3.0.1",
-    "@studydefi/money-legos": "^2.0.7",
+    "@studydefi/money-legos": "^2.1.0",
     "babel-eslint": "^10.1.0",
     "bignumber.js": "^9.0.0",
     "chai": "^4.2.0",

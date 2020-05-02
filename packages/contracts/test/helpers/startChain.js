@@ -6,13 +6,13 @@ dotenv.config();
 
 const { ROPSTEN_NODE_URL, PRIVATE_KEY } = process.env;
 
-const startChain = async () => {
+const startChain = async (userPrivateKey = PRIVATE_KEY) => {
   const ganache = Ganache.provider({
     fork: ROPSTEN_NODE_URL,
     network_id: 3,
     accounts: [
       {
-        secretKey: PRIVATE_KEY,
+        secretKey: userPrivateKey,
         balance: ethers.utils.hexlify(ethers.utils.parseEther('1000')),
       },
     ],

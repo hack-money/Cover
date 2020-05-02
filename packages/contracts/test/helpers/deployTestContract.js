@@ -1,5 +1,5 @@
 
-const { deployContract } = require('ethereum-waffle')
+const { deployContract } = require('ethereum-waffle');
 
 async function deployTestContract(user, contractArtifact, constructorArgument) {
   const deployedContract = await deployContract(

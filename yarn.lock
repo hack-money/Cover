@@ -1323,10 +1323,10 @@
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.5.2.tgz#4d74670ead39e4f4fdab605a393ba8ea2390a2c4"
   integrity sha512-uRyvnvVYmgNmTBpWDbBsH/0kPESQhQpEc4KsvMRLVzFJ1o1s0uIv0Y6Y9IB5vI1Dwz2CbS4X/y4Wyw/75cTFnQ==
 
-"@studydefi/money-legos@^2.0.7":
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/@studydefi/money-legos/-/money-legos-2.0.7.tgz#7bf416bd0f08c8f0943e38b04248db224403ac88"
-  integrity sha512-kszJfsYs/Uo03TKtrU5rcEdDrczjaCOGwJSw0N9ZHZAxN/yyX4n1qav+fDEQ+mi8x+X1PaEnQp/ARjXTFOOlgg==
+"@studydefi/money-legos@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@studydefi/money-legos/-/money-legos-2.1.0.tgz#637276782780cb81b9b6b3b900f497e97c057eea"
+  integrity sha512-zjDvt+Qm2/Y8S/kqmtOsF6d9Xe8kOOIy3ow2UM30vIEzCxDLeh041CDBD34PpW5aq08JG9+1yfvcZEJBiajimQ==
   dependencies:
     "@openzeppelin/contracts" "^2.5.0"
 
