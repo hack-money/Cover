@@ -48,8 +48,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
         require(amount != uint256(0), 'Pool/can not deposit 0');
         require(getPoolERC20Balance() > uint256(0), 'Pool/pool has 0 ERC20 tokens');
 
-        uint256 proportionOfPool = amount.div(getPoolERC20Balance());
-        uint256 numLPTokensToMint = proportionOfPool.mul(totalSupply());
+        uint256 numLPTokensToMint = (amount.mul(totalSupply())).div(getPoolERC20Balance());
         _mint(msg.sender, numLPTokensToMint);
 
         require(
@@ -87,8 +86,7 @@ contract LiquidityPool is ILiquidityPool, Ownable, ERC20, AaveIntegration {
         uint256 poolERC20Balance = getPoolERC20Balance();
         require(amount <= poolERC20Balance, 'Pool/insufficient pool balance');
 
-        uint256 proportionOfPool = amount.div(poolERC20Balance);
-        uint256 numLPTokensToBurn = proportionOfPool.mul(totalSupply());
+        uint256 numLPTokensToBurn = (amount.mul(totalSupply())).div(getPoolERC20Balance());
         
         require(balanceOf(msg.sender) != uint256(0), 'Pool/user has no LP tokens');
         require(numLPTokensToBurn <= balanceOf(msg.sender), 'Pool/not enough LP tokens to burn');
