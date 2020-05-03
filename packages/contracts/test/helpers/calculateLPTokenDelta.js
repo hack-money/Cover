@@ -1,6 +1,5 @@
-function calculateLPTokenDelta(erc20DepositNum, poolERC20Balance, poolTotalSupply) {
-    const proportionOfPool = erc20DepositNum / poolERC20Balance;
-    return proportionOfPool * poolTotalSupply;
+function calculateLPTokenDelta(amount, poolERC20Balance, poolTotalSupply) {
+    return (amount * poolTotalSupply) / poolERC20Balance;
 }
 
 module.exports = { calculateLPTokenDelta };

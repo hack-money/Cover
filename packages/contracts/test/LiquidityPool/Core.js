@@ -109,6 +109,27 @@ describe('Core liquidity pool functionality', async () => {
         );
     })
 
-    // TODO
-    it('should burn appropriate number of LP tokens on liquidity withdraw', async () => {});
+    it('should burn appropriate number of LP tokens on liquidity withdraw', async () => {
+        await liquidityPool.deposit(deposit);
+        const userLPTokenNumPostDeposit = await liquidityPool.getUserLPBalance(
+            user.address
+        );
+
+        const receipt = await liquidityPool.withdraw(withdraw);
+        expect(receipt).to.not.equal(undefined);
+
+        const userLPTokenNumPostWithdraw = await liquidityPool.getUserLPBalance(
+            user.address
+        );
+        const poolERC20Balance = await liquidityPool.getPoolERC20Balance();
+        const poolTotalSupply = await liquidityPool.totalSupply();
+
+        const expectedTokenDelta = calculateLPTokenDelta(
+            withdraw,
+            poolERC20Balance,
+            poolTotalSupply
+        );
+
+        expect(userLPTokenNumPostWithdraw).to.equal(userLPTokenNumPostDeposit - expectedTokenDelta);
+    });
 })

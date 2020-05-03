@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-const { ethers } = require('ethers');
+const { ethers } = require('@nomiclabs/buidler');
 const Ganache = require('ganache-core');
 
 dotenv.config();
