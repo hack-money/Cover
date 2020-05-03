@@ -1,5 +1,5 @@
 const { use, expect } = require('chai');
-const { ethers } = require('ethers');
+const { ethers } = require('@nomiclabs/buidler');
 const { solidity } = require('ethereum-waffle');
 const aave = require('@studydefi/money-legos/aave');
 const moneyLegoERC20 = require('@studydefi/money-legos/erc20');
@@ -10,13 +10,14 @@ const { startChain } = require('../helpers/startChain');
 
 use(solidity);
 
-describe.skip('Aave integration - liquidity pool', async () => {
+describe('Aave integration - liquidity pool', async () => {
     let liquidityPool;
     let aDai;
     let dai;
     let user;
     const deposit = 10;
     const aaveTransfer = 5;
+    const initialLiquidityMint = 1;
 
     const aDAIRopsten = '0xcB1Fe6F440c49E9290c3eb7f158534c2dC374201';
     const daiRopsten = '0xf80A32A835F79D7787E8a8ee5721D0fEaFd78108';
@@ -30,14 +31,14 @@ describe.skip('Aave integration - liquidity pool', async () => {
             daiRopsten,
         ]);
 
-        await dai.transfer(liquidityPool.address, 1);
+        await dai.transfer(liquidityPool.address, initialLiquidityMint);
         await dai.approve(liquidityPool.address, deposit)
 
         aDai = await new ethers.Contract(aDAIRopsten, aave.ATokenAbi, user);
     });
 
     it('should transfer funds to Aave and receive aTokens', async () => {
-        await liquidityPool.deposit(1);
+        await liquidityPool.deposit(deposit);
         const aDaiBalancePreTransfer = await aDai.balanceOf(
             liquidityPool.address
         );
@@ -49,7 +50,11 @@ describe.skip('Aave integration - liquidity pool', async () => {
         const aDaiBalancePostTransfer = await aDai.balanceOf(
             liquidityPool.address
         );
-        expect(aDaiBalancePostTransfer).to.equal(deposit);
+        const daiBalancePostTransfer = await dai.balanceOf(
+            liquidityPool.address
+        );
+        expect(daiBalancePostTransfer).to.equal(deposit + initialLiquidityMint - aaveTransfer);
+        expect(aDaiBalancePostTransfer).to.equal(aaveTransfer);
     });
 
     it('should redeem aTokens for underlying collateral', async () => {
@@ -67,6 +72,6 @@ describe.skip('Aave integration - liquidity pool', async () => {
             liquidityPool.address
         );
         expect(aDaiBalancePostWithdraw).to.equal(0);
-        expect(daiBalancePostWithdraw).to.equal(aaveTransfer);
+        expect(daiBalancePostWithdraw).to.equal(deposit + initialLiquidityMint);
     });
 });

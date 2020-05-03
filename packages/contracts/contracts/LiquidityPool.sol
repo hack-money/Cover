@@ -70,8 +70,9 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
      */
     function transferToAave(uint256 transferAmount) public override onlyOwner {
         uint16 referral = 0;
-        IERC20(linkedToken).approve(aaveProvider.getLendingPoolCore(), transferAmount);
         
+        // TODO: investigate why this doesn't work for approvals set to transferAmount rather than a very large number
+        IERC20(linkedToken).approve(aaveProvider.getLendingPoolCore(), uint256(0x1f));        
         aaveLendingPool.deposit(linkedToken, transferAmount, referral);
         emit DepositAave(owner(), transferAmount);
     }
