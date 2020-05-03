@@ -1,0 +1,79 @@
+{
+  "name": "@hack/react-app",
+  "version": "0.1.0",
+  "description": "hack.money frontend",
+  "main": "./src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hack-money/hack.git"
+  },
+  "author": "Tom French",
+  "bugs": {
+    "url": "https://github.com/hack-money/hack.git"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.0.0-beta.41",
+    "@material-ui/core": "^4.9.5",
+    "@material-ui/icons": "^4.9.1",
+    "bnc-onboard": "^1.7.1",
+    "ethers": "^4.0.46",
+    "graphql": "^14.6.0",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.0",
+    "react-blockies": "^1.4.1",
+    "react-copy-to-clipboard": "^5.0.2",
+    "react-dom": "^16.13.0",
+    "react-scripts": "3.4.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.4",
+    "@babel/node": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/preset-typescript": "^7.9.0",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "@types/react-copy-to-clipboard": "^4.3.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^2.27.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-react": "^7.19.0",
+    "prettier": "^2.0.4",
+    "shx": "^0.3.2",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "commit": "git-cz",
+    "prestart": "yarn clean && yarn lint --fix",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject",
+    "clean": "shx rm -rf ./build",
+    "has:changed": "bash ../monorepo-scripts/ci/hasChanged.sh react-app",
+    "lint": "eslint --config .eslintrc.js ./src --ext .js,.jsx,.ts,.tsx"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}

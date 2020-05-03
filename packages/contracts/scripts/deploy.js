@@ -14,7 +14,10 @@ async function main() {
     );
     const liquidityPoolFactory = await LiquidityPoolFactory.deploy();
     await liquidityPoolFactory.deployed();
-    console.log('Liqudity pool factory deployed to: ', liquidityPoolFactory.address);
+    console.log(
+        'Liquidity pool factory deployed to: ',
+        liquidityPoolFactory.address
+    );
 
     const OptionsFactory = await ethers.getContractFactory('OptionsFactory');
     const optionsFactory = await OptionsFactory.deploy(
