@@ -2,7 +2,7 @@
   "name": "@hack/react-app",
   "version": "0.1.0",
   "description": "hack.money frontend",
-  "main": "./src/index.js",
+  "homepage": "./",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hack-money/hack.git"
