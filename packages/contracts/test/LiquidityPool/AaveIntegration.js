@@ -31,34 +31,27 @@ describe('Aave integration - liquidity pool', async () => {
         await liquidityPool.deposit(deposit);
     });
 
-    describe("exchange Tokens for aTokens", () => {
-        it('should transfer funds to Aave and receive aTokens', async () => {
-            const aDaiBalancePreTransfer = await liquidityPool.getPoolATokenBalance();
-            expect(aDaiBalancePreTransfer).to.equal(0);
-    
-            await liquidityPool.transferToAave(aaveTransfer);
-    
-            const aDaiBalancePostTransfer = await liquidityPool.getPoolATokenBalance();
-            const daiBalancePostTransfer = await liquidityPool.getPoolERC20Balance();
+    it('should transfer funds to Aave and receive aTokens', async () => {
+        const aDaiBalancePreTransfer = await liquidityPool.getPoolATokenBalance();
+        expect(aDaiBalancePreTransfer).to.equal(0);
 
-            expect(daiBalancePostTransfer).to.equal(deposit - aaveTransfer);
-            expect(aDaiBalancePostTransfer).to.equal(aaveTransfer);
-        });
-    })
+        await liquidityPool.transferToAave(aaveTransfer);
 
-    describe("redeem aTokens for Tokens", () => {
-        beforeEach(async () => {
-            await liquidityPool.transferToAave(aaveTransfer);
-        })
+        const aDaiBalancePostTransfer = await liquidityPool.getPoolATokenBalance();
+        const daiBalancePostTransfer = await liquidityPool.getPoolERC20Balance();
 
-        it('should redeem aTokens for underlying collateral', async () => {
-            await liquidityPool.withdrawFromAave(aaveTransfer);
-    
-            const aDaiBalancePostWithdraw = await liquidityPool.getPoolATokenBalance();
-    
-            const daiBalancePostWithdraw = await liquidityPool.getPoolERC20Balance();
-            expect(aDaiBalancePostWithdraw).to.equal(0);
-            expect(daiBalancePostWithdraw).to.equal(deposit);
-        });
-    })
+        expect(daiBalancePostTransfer).to.equal(deposit - aaveTransfer);
+        expect(aDaiBalancePostTransfer).to.equal(aaveTransfer);
+    });
+
+    it('should redeem aTokens for underlying collateral', async () => {
+        await liquidityPool.transferToAave(aaveTransfer);
+        await liquidityPool.withdrawFromAave(aaveTransfer);
+
+        const aDaiBalancePostWithdraw = await liquidityPool.getPoolATokenBalance();
+
+        const daiBalancePostWithdraw = await liquidityPool.getPoolERC20Balance();
+        expect(aDaiBalancePostWithdraw).to.equal(0);
+        expect(daiBalancePostWithdraw).to.equal(deposit);
+    });
 });
