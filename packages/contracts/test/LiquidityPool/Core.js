@@ -27,16 +27,14 @@ describe('Core liquidity pool functionality', async () => {
         await erc20.approve(liquidityPool.address, numUserTokens);
     })
 
-    describe('constructor', () => {
-        it('should set owner of pool', async () => {
-            const owner = await liquidityPool.owner();
-            expect(owner).to.equal(user.address);
-        })
-    
-        it('should set linked ERC20 token', async () => {
-            const linkedToken = await liquidityPool.linkedToken();
-            expect(linkedToken).to.equal(erc20.address);
-        })
+    it('should set owner of pool', async () => {
+        const owner = await liquidityPool.owner();
+        expect(owner).to.equal(user.address);
+    })
+
+    it('should set linked ERC20 token', async () => {
+        const linkedToken = await liquidityPool.linkedToken();
+        expect(linkedToken).to.equal(erc20.address);
     })
 
     describe('deposit', () => {
