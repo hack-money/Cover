@@ -20,4 +20,10 @@ interface ILiquidityPool {
     function transferATokens(uint256 amount, address recipient) external;
 
     function transferToAave(uint256 transferAmount) external;
+
+    function sendTokens(address recipient, uint256 transferAmount) external;
+
+    function lock(uint256 amount) external;
+
+    function unlock(uint256 amount) external;
 }
