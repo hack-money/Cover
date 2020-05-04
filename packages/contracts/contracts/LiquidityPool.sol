@@ -132,6 +132,13 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     }
 
     /**
+    * @dev Get the total number of aDAI tokens deposited into the liquidity pool
+     */
+    function getPoolATokenBalance() public view override returns (uint256) {
+        return aTokenInstance.balanceOf(address(this));
+    }
+
+    /**
     * @dev Get the total number of DAI tokens deposited into the liquidity pool
      */
     function getPoolERC20Balance() public view override returns (uint256) {

@@ -13,6 +13,8 @@ interface ILiquidityPool {
 
     function getPoolERC20Balance() external view returns (uint256);
 
+    function getPoolATokenBalance() external view returns (uint256);
+
     function withdrawFromAave(uint256 redeemAmount) external;
 
     function transferATokens(uint256 amount, address recipient) external;
