@@ -11,13 +11,11 @@ use(solidity);
 
 describe('Aave integration - liquidity pool', async () => {
     let liquidityPool;
-    // let aDai;
     let dai;
     let user;
     const deposit = 10;
     const aaveTransfer = 5;
 
-    // const aDAIRopsten = '0xcB1Fe6F440c49E9290c3eb7f158534c2dC374201';
     const daiRopsten = '0xf80A32A835F79D7787E8a8ee5721D0fEaFd78108';
 
     beforeEach(async () => {
@@ -30,9 +28,6 @@ describe('Aave integration - liquidity pool', async () => {
         ]);
 
         await dai.approve(liquidityPool.address, deposit)
-
-        // aDai = await new ethers.Contract(aDAIRopsten, aave.ATokenAbi, user);
-
         await liquidityPool.deposit(deposit);
     });
 
