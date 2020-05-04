@@ -43,7 +43,7 @@ describe('Core liquidity pool functionality', async () => {
         describe('inital deposit', () => {
             const initalDepositLPMultiplier = 1000
 
-            beforeEach(async () => {
+            it('should start with a balance of zero', async () => {
                 const liquidityPoolInitialBalance = await liquidityPool.getPoolERC20Balance();
                 expect(liquidityPoolInitialBalance).to.equal("0");
 
