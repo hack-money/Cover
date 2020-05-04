@@ -19,7 +19,7 @@ const startChain = async (userPrivateKey = PRIVATE_KEY) => {
   });
 
   const provider = new ethers.providers.Web3Provider(ganache);
-  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  const wallet = new ethers.Wallet(userPrivateKey, provider);
 
   return wallet;
 };
