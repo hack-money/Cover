@@ -40,8 +40,8 @@ describe('Core liquidity pool functionality', async () => {
     describe('deposit', () => {
         const deposit = 10;
 
-        describe('inital deposit', () => {
-            const initalDepositLPMultiplier = 1000
+        describe('initial deposit', () => {
+            const initialDepositLPMultiplier = 1000
 
             it('should start with a balance of zero', async () => {
                 const liquidityPoolInitialBalance = await liquidityPool.getPoolERC20Balance();
@@ -75,7 +75,7 @@ describe('Core liquidity pool functionality', async () => {
                     user.address
                 );
     
-                expect(finalUserTokenNum).to.equal(deposit * initalDepositLPMultiplier);
+                expect(finalUserTokenNum).to.equal(deposit * initialDepositLPMultiplier);
             })
         })
 
