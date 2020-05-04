@@ -38,9 +38,6 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
 
     constructor(address erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         linkedToken = erc20;
-
-        // mint owner 1 LP token
-        _mint(owner(), 1);
     }
 
     /**
@@ -51,9 +48,14 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
      */
     function deposit(uint256 amount) public override {
         require(amount != uint256(0), 'Pool/can not deposit 0');
-        require(getPoolERC20Balance() > uint256(0), 'Pool/pool has 0 ERC20 tokens');
 
-        uint256 numLPTokensToMint = (amount.mul(totalSupply())).div(getPoolERC20Balance());
+        uint256 numLPTokensToMint;
+        if (totalSupply() == 0) {
+            numLPTokensToMint = amount.mul(1000);
+        } else {
+            numLPTokensToMint = (amount.mul(totalSupply())).div(getPoolERC20Balance());
+        }
+
         _mint(msg.sender, numLPTokensToMint);
 
         require(
@@ -127,6 +129,13 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
      */
     function getUserLPBalance(address user) public view override returns (uint256) {
         return balanceOf(user);
+    }
+
+    /**
+    * @dev Get the total number of aDAI tokens deposited into the liquidity pool
+     */
+    function getPoolATokenBalance() public view override returns (uint256) {
+        return aTokenInstance.balanceOf(address(this));
     }
 
     /**
