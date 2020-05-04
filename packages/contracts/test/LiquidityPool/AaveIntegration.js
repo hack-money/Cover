@@ -1,7 +1,6 @@
 const { use, expect } = require('chai');
 const { ethers } = require('@nomiclabs/buidler');
 const { solidity } = require('ethereum-waffle');
-const aave = require('@studydefi/money-legos/aave');
 const moneyLegoERC20 = require('@studydefi/money-legos/erc20');
 
 const LiquidityPool = require('../../build/LiquidityPool.json');
@@ -12,14 +11,13 @@ use(solidity);
 
 describe('Aave integration - liquidity pool', async () => {
     let liquidityPool;
-    let aDai;
+    // let aDai;
     let dai;
     let user;
     const deposit = 10;
     const aaveTransfer = 5;
-    const initialLiquidityMint = 1;
 
-    const aDAIRopsten = '0xcB1Fe6F440c49E9290c3eb7f158534c2dC374201';
+    // const aDAIRopsten = '0xcB1Fe6F440c49E9290c3eb7f158534c2dC374201';
     const daiRopsten = '0xf80A32A835F79D7787E8a8ee5721D0fEaFd78108';
 
     beforeEach(async () => {
@@ -31,47 +29,41 @@ describe('Aave integration - liquidity pool', async () => {
             daiRopsten,
         ]);
 
-        await dai.transfer(liquidityPool.address, initialLiquidityMint);
         await dai.approve(liquidityPool.address, deposit)
 
-        aDai = await new ethers.Contract(aDAIRopsten, aave.ATokenAbi, user);
-    });
+        // aDai = await new ethers.Contract(aDAIRopsten, aave.ATokenAbi, user);
 
-    it('should transfer funds to Aave and receive aTokens', async () => {
         await liquidityPool.deposit(deposit);
-        const aDaiBalancePreTransfer = await aDai.balanceOf(
-            liquidityPool.address
-        );
-        expect(aDaiBalancePreTransfer).to.equal(0);
-
-        const receipt = await liquidityPool.transferToAave(aaveTransfer);
-        expect(receipt).to.not.equal(undefined);
-
-        const aDaiBalancePostTransfer = await aDai.balanceOf(
-            liquidityPool.address
-        );
-        const daiBalancePostTransfer = await dai.balanceOf(
-            liquidityPool.address
-        );
-        expect(daiBalancePostTransfer).to.equal(deposit + initialLiquidityMint - aaveTransfer);
-        expect(aDaiBalancePostTransfer).to.equal(aaveTransfer);
     });
 
-    it('should redeem aTokens for underlying collateral', async () => {
-        await liquidityPool.deposit(deposit);
-        await liquidityPool.transferToAave(aaveTransfer);
+    describe("exchange Tokens for aTokens", () => {
+        it('should transfer funds to Aave and receive aTokens', async () => {
+            const aDaiBalancePreTransfer = await liquidityPool.getPoolATokenBalance();
+            expect(aDaiBalancePreTransfer).to.equal(0);
+    
+            await liquidityPool.transferToAave(aaveTransfer);
+    
+            const aDaiBalancePostTransfer = await liquidityPool.getPoolATokenBalance();
+            const daiBalancePostTransfer = await liquidityPool.getPoolERC20Balance();
 
-        const receipt = await liquidityPool.withdrawFromAave(aaveTransfer);
-        expect(receipt).to.not.equal(undefined);
+            expect(daiBalancePostTransfer).to.equal(deposit - aaveTransfer);
+            expect(aDaiBalancePostTransfer).to.equal(aaveTransfer);
+        });
+    })
 
-        const aDaiBalancePostWithdraw = await aDai.balanceOf(
-            liquidityPool.address
-        );
+    describe("redeem aTokens for Tokens", () => {
+        beforeEach(async () => {
+            await liquidityPool.transferToAave(aaveTransfer);
+        })
 
-        const daiBalancePostWithdraw = await dai.balanceOf(
-            liquidityPool.address
-        );
-        expect(aDaiBalancePostWithdraw).to.equal(0);
-        expect(daiBalancePostWithdraw).to.equal(deposit + initialLiquidityMint);
-    });
+        it('should redeem aTokens for underlying collateral', async () => {
+            await liquidityPool.withdrawFromAave(aaveTransfer);
+    
+            const aDaiBalancePostWithdraw = await liquidityPool.getPoolATokenBalance();
+    
+            const daiBalancePostWithdraw = await liquidityPool.getPoolERC20Balance();
+            expect(aDaiBalancePostWithdraw).to.equal(0);
+            expect(daiBalancePostWithdraw).to.equal(deposit);
+        });
+    })
 });
