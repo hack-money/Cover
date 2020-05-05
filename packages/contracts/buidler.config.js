@@ -26,7 +26,6 @@ module.exports = {
     },
     // evmVersion: "istanbul",
   },
-  // contracts_build_directory: "./build",
   mocha: {
     bail: true,
     enableTimeouts: false,
