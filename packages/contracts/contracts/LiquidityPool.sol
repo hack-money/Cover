@@ -19,7 +19,7 @@ import { IAToken } from './interfaces/IAToken.sol';
 contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     using SafeMath for uint256;
     
-    address override public linkedToken;
+    IERC20 override public linkedToken;
 
     // Aave contracts
     ILendingPoolAddressesProvider aaveProvider;
@@ -33,7 +33,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     event DepositAave(address indexed owner, uint256 transferAmount);
     event RedeemAave(address indexed owner, uint256 redeemAmount);
 
-    constructor(address erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
+    constructor(IERC20 erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         linkedToken = erc20;
     }
 
@@ -44,7 +44,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
         aaveProvider = ILendingPoolAddressesProvider(aaveLendingPoolAddressesProvider);
         aaveLendingPool = ILendingPool(aaveProvider.getLendingPool());
 
-        (,,,,,,,,,,,address aTokenAddress,) = aaveLendingPool.getReserveData(linkedToken);
+        (,,,,,,,,,,,address aTokenAddress,) = aaveLendingPool.getReserveData(address(linkedToken));
         aTokenInstance = IAToken(aTokenAddress);
 
         aaveInitialised = true;
@@ -69,7 +69,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
         _mint(msg.sender, numLPTokensToMint);
 
         require(
-            IERC20(linkedToken).transferFrom(msg.sender, address(this), amount),
+            linkedToken.transferFrom(msg.sender, address(this), amount),
             'Pool/insufficient user funds to deposit'
         );
 
@@ -84,8 +84,8 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
         require(aaveInitialised, "Pool/aave integration is not initialised");
         
         // TODO: investigate why this doesn't work for approvals set to transferAmount rather than a very large number
-        IERC20(linkedToken).approve(aaveProvider.getLendingPoolCore(), uint256(0x1f));        
-        aaveLendingPool.deposit(linkedToken, transferAmount, referral);
+        linkedToken.approve(aaveProvider.getLendingPoolCore(), uint256(0x1f));        
+        aaveLendingPool.deposit(address(linkedToken), transferAmount, referral);
         emit DepositAave(owner(), transferAmount);
     }
 
@@ -107,7 +107,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
         _burn(msg.sender, numLPTokensToBurn);
 
         require(
-            IERC20(linkedToken).transfer(msg.sender, amount),
+            linkedToken.transfer(msg.sender, amount),
             'Pool/insufficient user funds to withdraw'
         );
 
@@ -155,6 +155,6 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * @dev Get the total number of DAI tokens deposited into the liquidity pool
      */
     function getPoolERC20Balance() public view override returns (uint256) {
-        return IERC20(linkedToken).balanceOf(address(this));
+        return linkedToken.balanceOf(address(this));
     }
 }
