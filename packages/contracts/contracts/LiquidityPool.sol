@@ -18,18 +18,15 @@ import { IAToken } from './interfaces/IAToken.sol';
  */
 contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     using SafeMath for uint256;
-
-    // ropsten addresses
+    
     address override public linkedToken;
-    address aaveLendingPoolAddressesProvider = 0x1c8756FD2B28e9426CDBDcC7E3c4d64fa9A54728;
-    address aDaiAddress = 0xcB1Fe6F440c49E9290c3eb7f158534c2dC374201;
-
 
     // Aave contracts
-    ILendingPoolAddressesProvider aaveProvider = ILendingPoolAddressesProvider(aaveLendingPoolAddressesProvider);
-    ILendingPool aaveLendingPool = ILendingPool(aaveProvider.getLendingPool());
-
-    IAToken aTokenInstance = IAToken(aDaiAddress);
+    ILendingPoolAddressesProvider aaveProvider;
+    ILendingPool aaveLendingPool;
+    IAToken aTokenInstance;
+    uint16 constant private referral = 0;
+    bool private aaveInitialised;
 
     event Deposit(address indexed user, address indexed liquidityPool, uint256 amount);
     event Withdraw(address indexed user, address indexed liquidityPool, uint256 amount);
@@ -38,6 +35,19 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
 
     constructor(address erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         linkedToken = erc20;
+    }
+
+    function initialiseAave() public onlyOwner {
+        // ropsten addresses
+        address aaveLendingPoolAddressesProvider = 0x1c8756FD2B28e9426CDBDcC7E3c4d64fa9A54728;
+        
+        aaveProvider = ILendingPoolAddressesProvider(aaveLendingPoolAddressesProvider);
+        aaveLendingPool = ILendingPool(aaveProvider.getLendingPool());
+
+        (,,,,,,,,,,,address aTokenAddress,) = aaveLendingPool.getReserveData(linkedToken);
+        aTokenInstance = IAToken(aTokenAddress);
+
+        aaveInitialised = true;
     }
 
     /**
@@ -71,7 +81,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * aTokens in return 
      */
     function transferToAave(uint256 transferAmount) public override onlyOwner {
-        uint16 referral = 0;
+        require(aaveInitialised, "Pool/aave integration is not initialised");
         
         // TODO: investigate why this doesn't work for approvals set to transferAmount rather than a very large number
         IERC20(linkedToken).approve(aaveProvider.getLendingPoolCore(), uint256(0x1f));        
@@ -109,6 +119,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * Protected by onlyOwner
      */
     function withdrawFromAave(uint256 redeemAmount) public override onlyOwner {
+        require(aaveInitialised, "Pool/aave integration is not initialised");
         aTokenInstance.redeem(redeemAmount);
         emit RedeemAave(owner(), redeemAmount);
     }
@@ -118,6 +129,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * Protected by onlyOwner
      */
     function transferATokens(uint256 amount, address recipient) public override onlyOwner {
+        require(aaveInitialised, "Pool/aave integration is not initialised");
         require(recipient != address(0x0));
         require(amount != uint256(0));
 
@@ -135,6 +147,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * @dev Get the total number of aDAI tokens deposited into the liquidity pool
      */
     function getPoolATokenBalance() public view override returns (uint256) {
+        require(aaveInitialised, "Pool/aave integration is not initialised");
         return aTokenInstance.balanceOf(address(this));
     }
 

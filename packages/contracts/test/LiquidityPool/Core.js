@@ -1,25 +1,22 @@
 const { use, expect } = require('chai');
-const { solidity } = require('ethereum-waffle');
-const { utils } = require('ethers');
+const { solidity, MockProvider } = require('ethereum-waffle');
+const { bigNumberify } = require('ethers/utils');
 
 const LiquidityPool = require('../../build/LiquidityPool.json');
 const ERC20Mintable = require('../../build/ERC20Mintable.json');
 const { calculateLPTokenDelta } = require('../helpers/calculateLPTokenDelta');
 const { deployTestContract } = require('../helpers/deployTestContract');
-const { startChain } = require('../helpers/startChain');
 
 use(solidity);
-
-const { bigNumberify } = utils
 
 describe('Core liquidity pool functionality', async () => {
     let liquidityPool;
     let erc20;
     const numUserTokens = 20;
-    let user;
+    const provider = new MockProvider();
+    const [user] = provider.getWallets();
 
     beforeEach(async () => {
-        user = await startChain();
         erc20 = await deployTestContract(user, ERC20Mintable);
         liquidityPool = await deployTestContract(user, LiquidityPool, [erc20.address]);
 
