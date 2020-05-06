@@ -20,7 +20,7 @@ abstract contract Options is Ownable {
 
     Option[] public options; // Array of all created options
     ILiquidityPool public pool; // Liquidity pool of asset which options will be exercised against
-    address public paymentToken; // Token for which exercised options will pay in
+    IERC20 public paymentToken; // Token for which exercised options will pay in
     OptionType public optionType; // Does this contract sell put or call options?
 
     uint constant priceDecimals = 1e8; // number of decimal places in strike price
@@ -32,13 +32,13 @@ abstract contract Options is Ownable {
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
 
-    constructor(address poolToken, address _paymentToken, OptionType t) public {
+    constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t) public {
         pool = new LiquidityPool(poolToken);
         paymentToken= _paymentToken;
         optionType = t;
     }
 
-    function poolToken() public view returns (address) {
+    function poolToken() public view returns (IERC20) {
         return pool.linkedToken();
     }
 

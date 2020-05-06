@@ -12,7 +12,7 @@ import {State, Option, OptionType} from "./Types.sol";
  * Copyright 2020 Tom Waite, Tom French
  */
 contract PutOptions is Options {
-  constructor(address poolToken, address paymentToken)
+  constructor(IERC20 poolToken, IERC20 paymentToken)
     Options(poolToken, paymentToken, OptionType.Put) public {}
 
   /// @dev Exchange an amount of payment token into the pool token.
@@ -58,11 +58,11 @@ contract PutOptions is Options {
 
       // Take ownership of paymentTokens to be paid into liquidity pool.
       require(
-        IERC20(paymentToken).transferFrom(msg.sender, address(this), premium),
+        paymentToken.transferFrom(msg.sender, address(this), premium),
         "Insufficient funds"
       );
 
-      IERC20(paymentToken).transfer(owner(), fee);
+      paymentToken.transfer(owner(), fee);
 
       // Exchange paymentTokens into poolTokens to be added to pool
       exchangeTokens(premium);
@@ -91,7 +91,7 @@ contract PutOptions is Options {
 
       // Take ownership of paymentTokens to be paid into liquidity pool.
       require(
-        IERC20(paymentToken).transferFrom(option.holder, address(this), option.amount),
+        paymentToken.transferFrom(option.holder, address(this), option.amount),
         "Insufficient funds"
       );
 

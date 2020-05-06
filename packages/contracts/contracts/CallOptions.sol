@@ -7,7 +7,7 @@ import {State, Option, OptionType} from "./Types.sol";
 
 
 contract CallOptions is Options {
-    constructor(address poolToken, address paymentToken)
+    constructor(IERC20 poolToken, IERC20 paymentToken)
     Options(poolToken, paymentToken, OptionType.Call) public {}
 
     /// @dev Exchange an amount of payment token into the pool token.
@@ -50,12 +50,12 @@ contract CallOptions is Options {
 
         // Take ownership of paymentTokens to be paid into liquidity pool.
         require(
-          IERC20(paymentToken).transferFrom(msg.sender, address(this), premium),
+          paymentToken.transferFrom(msg.sender, address(this), premium),
           "Insufficient funds"
         );
 
         // Transfer operator fee
-        IERC20(paymentToken).transfer(owner(), fee);
+        paymentToken.transfer(owner(), fee);
 
         // Lock the assets in the liquidity pool which this asset would be exercised against
         // pool.lock(amount);
@@ -85,7 +85,7 @@ contract CallOptions is Options {
 
         // Take ownership of paymentTokens to be paid into liquidity pool.
         require(
-          IERC20(paymentToken).transferFrom(option.holder, address(this), option.strikeAmount),
+          paymentToken.transferFrom(option.holder, address(this), option.strikeAmount),
           "Insufficient funds"
         );
 
