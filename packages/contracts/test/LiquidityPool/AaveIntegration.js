@@ -27,6 +27,8 @@ describe('Aave integration - liquidity pool', async () => {
             daiRopsten,
         ]);
 
+        await liquidityPool.initialiseAave()
+
         await dai.approve(liquidityPool.address, deposit)
         await liquidityPool.deposit(deposit);
     });
