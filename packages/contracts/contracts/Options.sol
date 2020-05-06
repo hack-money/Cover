@@ -33,9 +33,7 @@ abstract contract Options is IOptions, Ownable {
     event Create (uint indexed optionId, address indexed account, uint fee, uint premium);
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
-
-    // function create(uint duration, uint amount) public virtual override returns (uint optionID);
-    // function exercise(uint optionID) public virtual override returns (uint amount);
+    
     
     constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t) public {
         pool = new LiquidityPool(poolToken);
