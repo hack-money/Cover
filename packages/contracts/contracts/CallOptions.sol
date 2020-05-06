@@ -25,7 +25,7 @@ contract CallOptions is Options {
       * @param amount [placeholder]
       * @return optionID A uint object representing the ID number of the created option.
       */
-    function create(uint period, uint amount) public returns (uint optionID) {
+    function create(uint period, uint amount) public override returns (uint optionID) {
       return create(period, amount, 103000000);
     }
 
@@ -73,7 +73,7 @@ contract CallOptions is Options {
 
     /// @dev Exercise an option to claim the pool tokens
     /// @param optionID The ID number of the option which is to be exercised
-    function exercise(uint optionID) public returns (uint256){
+    function exercise(uint optionID) public override returns (uint256){
         Option storage option = options[optionID];
 
         require(option.startTime <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
