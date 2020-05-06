@@ -1,9 +1,5 @@
 const { bigNumberify } = require('ethers/utils');
 
-function encodePrice(reserve0, reserve1) {
-  return [reserve1.mul(bigNumberify(2).pow(112)).div(reserve0), reserve0.mul(bigNumberify(2).pow(112)).div(reserve1)]
-}
-
 function expandTo18Decimals(n) {
   return bigNumberify(n).mul(bigNumberify(10).pow(18))
 }
@@ -24,7 +20,6 @@ async function mineBlock(provider, timestamp) {
 }
 
 module.exports = {
-  encodePrice,
   expandTo18Decimals,
   mineBlock
 }
