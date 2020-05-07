@@ -37,7 +37,7 @@ contract CallOptions is Options {
       * @param strikePrice the strike price of the option to be created
       * @return optionID A uint object representing the ID number of the created option.
       */
-    function create(uint duration, uint amount, uint strikePrice) public returns (uint optionID) {
+    function create(uint duration, uint amount, uint strikePrice) internal returns (uint optionID) {
         uint256 fee = 0;
         uint256 premium = 100;
 
