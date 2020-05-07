@@ -45,6 +45,10 @@ abstract contract Options is IOptions, Ownable {
         return pool.linkedToken();
     }
 
+    function getOptionsCount() public view returns(uint) {
+        return options.length;
+    }
+
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public override pure returns (uint256) {
         return 0;
     }
