@@ -157,4 +157,16 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     function getPoolERC20Balance() public view override returns (uint256) {
         return linkedToken.balanceOf(address(this));
     }
+
+    function lock(uint256 amount) external override onlyOwner {
+    }
+
+    function unlock(uint256 amount) external override onlyOwner {
+    }
+
+    function sendTokens(address recipient, uint256 transferAmount) external override onlyOwner {
+        // TODO: unlock the same tokens
+        // unlock(amount)
+        require(IERC20(linkedToken).transfer(recipient, transferAmount), "Transfer of pool tokens failed");
+    }
 }

@@ -5,7 +5,8 @@ async function deployTestContract(user, contractArtifact, constructorArgument) {
   const deployedContract = await deployContract(
     user,
     contractArtifact,
-    constructorArgument
+    constructorArgument,
+    {gasLimit: 9999999}
   );
   return deployedContract;
 }
