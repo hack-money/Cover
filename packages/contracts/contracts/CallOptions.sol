@@ -21,12 +21,12 @@ contract CallOptions is Options {
     /**
       * @dev Create an option to buy pool tokens at the current price
       *
-      * @param period the period of time for which the option is valid
+      * @param duration the period of time for which the option is valid
       * @param amount [placeholder]
       * @return optionID A uint object representing the ID number of the created option.
       */
-    function create(uint period, uint amount) public override returns (uint optionID) {
-      return create(period, amount, 103000000);
+    function create(uint duration, uint amount) public override returns (uint optionID) {
+      return create(duration, amount, 103000000);
     }
 
     /**
