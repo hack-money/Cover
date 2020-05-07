@@ -25,7 +25,7 @@ interface IOptions {
 
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) external pure returns (uint256);
 
-    function unlock(uint[] calldata optionIDs) external;
+    function unlockMany(uint[] calldata optionIDs) external;
 
     function unlock(uint optionID) external;
 }

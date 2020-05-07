@@ -52,7 +52,7 @@ abstract contract Options is IOptions, Ownable {
     /// @dev Unlocks collateral for an array of expired options.
     ///      This is done as they can no longer be exercised.
     /// @param optionIDs An array of IDs for expired options
-    function unlock(uint[] memory optionIDs) public override {
+    function unlockMany(uint[] memory optionIDs) public override {
         for(uint i; i < optionIDs.length; i++) {
             unlock(optionIDs[i]);
         }
