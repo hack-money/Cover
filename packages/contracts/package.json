@@ -55,8 +55,8 @@
     "ethereum-waffle": "^2.4.1",
     "ethers": "^4.0.47",
     "ganache-core": "^2.10.2",
-    "ganache-time-traveler": "^1.0.14",
     "mocha": "^7.1.2",
+    "moment": "^2.25.3",
     "prettier": "^2.0.5"
   },
   "config": {

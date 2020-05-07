@@ -39,7 +39,7 @@ contract CallOptions is Options {
       */
     function create(uint duration, uint amount, uint strikePrice) internal returns (uint optionID) {
         uint256 fee = 0;
-        uint256 premium = 100;
+        uint256 premium = 10;
 
         uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
 

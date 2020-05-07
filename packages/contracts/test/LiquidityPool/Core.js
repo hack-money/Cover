@@ -13,7 +13,7 @@ describe('Core liquidity pool functionality', async () => {
     let liquidityPool;
     let erc20;
     const numUserTokens = 20;
-    const provider = new MockProvider();
+    const provider = new MockProvider({gasLimit: 9999999});
     const [user] = provider.getWallets();
 
     beforeEach(async () => {
