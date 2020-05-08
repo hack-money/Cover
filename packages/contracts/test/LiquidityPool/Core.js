@@ -48,6 +48,11 @@ describe('Core liquidity pool functionality', async () => {
                 expect(liquidityPoolInitialSupply).to.equal("0");
             })
 
+
+            it('should reject zero deposit', async () => {
+                await expect(liquidityPool.deposit("0")).to.be.revertedWith('Pool/can not deposit 0')
+            })
+
             it('should add liquidity to the pool', async () => {
                 const userPreDepositBalance = await erc20.balanceOf(user.address);
                 expect(userPreDepositBalance).to.equal(numUserTokens);
@@ -80,6 +85,10 @@ describe('Core liquidity pool functionality', async () => {
 
             beforeEach(async () => {
                 await liquidityPool.deposit(deposit);
+            })
+
+            it('should reject zero deposit', async () => {
+                await expect(liquidityPool.deposit("0")).to.be.revertedWith('Pool/can not deposit 0')
             })
 
             it('should add liquidity to the pool', async () => {
@@ -125,6 +134,10 @@ describe('Core liquidity pool functionality', async () => {
         beforeEach(async () => {
             const deposit = 10;
             await liquidityPool.deposit(deposit);
+        })
+
+        it('should reject zero withdrawal', async () => {
+            await expect(liquidityPool.withdraw("0")).to.be.revertedWith('Pool/can not withdraw 0')
         })
 
         it('should withdraw liquidity from the pool', async () => {
