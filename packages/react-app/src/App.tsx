@@ -1,11 +1,12 @@
 import React, { ReactElement } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
+import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 
-import { useAddress, useWallet } from './contexts/OnboardContext';
+import SideBar from './components/SideBar';
 
-import Header from './components/header/Header';
+import addLiquidityPage from './pages/AddLiquidityPage';
+import BuyOptionsPage from './pages/BuyOptionsPage';
+import ExerciseOptionsPage from './pages/ExerciseOptionsPage';
 
 const useStyles = makeStyles((theme) => ({
   layout: {
@@ -18,49 +19,23 @@ const useStyles = makeStyles((theme) => ({
       marginRight: 'auto',
     },
   },
-  paper: {
-    padding: theme.spacing(2),
-    [theme.breakpoints.up(800 + theme.spacing(3) * 2)]: {
-      padding: theme.spacing(3),
-    },
-  },
-  pageElement: {
-    marginTop: theme.spacing(1.5),
-    marginBottom: theme.spacing(1.5),
-    [theme.breakpoints.up(800 + theme.spacing(3) * 2)]: {
-      marginTop: theme.spacing(3),
-      marginBottom: theme.spacing(3),
-    },
-  },
-  icon: {
-    marginRight: theme.spacing(2),
-  },
-  // button: {
-  //   marginRight: theme.spacing(2),
-  // },
-  title: {
-    flexGrow: 1,
-  },
 }));
-
-// const NETWORK_ID: number = parseInt(process.env.REACT_APP_NETWORK_ID as string, 10);
 
 const App = (): ReactElement => {
   const classes = useStyles();
-  // const userAddress = useAddress();
-  // const wallet = useWallet();
 
   return (
-    <>
-      <Header />
+    <Router>
+      <SideBar />
       <main className={classes.layout}>
-        <Paper className={`${classes.pageElement} ${classes.paper}`}>
-          <Grid container direction="row" justify="space-around" spacing={3}>
-            Placeholder
-          </Grid>
-        </Paper>
+        <Switch>
+          <Redirect exact path="/" to="/deposit" />
+          <Route exact path="/deposit" component={addLiquidityPage} />
+          <Route exact path="/options/buy" component={BuyOptionsPage} />
+          <Route exact path="/options/exercise" component={ExerciseOptionsPage} />
+        </Switch>
       </main>
-    </>
+    </Router>
   );
 };
 
