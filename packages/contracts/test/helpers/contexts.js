@@ -1,7 +1,7 @@
 /* eslint-disable func-names */
 const { bigNumberify } = require('ethers/utils');
 const moment = require("moment");
-const traveler = require("./time-traveller");
+const traveler = require("ether-time-traveler");
 
 const {
   MAX_DURATION,
