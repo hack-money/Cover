@@ -21,15 +21,19 @@ describe('Aave integration - liquidity pool', async () => {
     beforeEach(async () => {
         // TODO: test needs a user account loaded with Ropsten DAI - pass private key to startChain()
         user = await startChain();
-        dai = await new ethers.Contract(daiRopsten, moneyLegoERC20.dai.abi, user);
+        dai = await new ethers.Contract(
+            daiRopsten,
+            moneyLegoERC20.dai.abi,
+            user
+        );
 
         liquidityPool = await deployTestContract(user, LiquidityPool, [
             daiRopsten,
         ]);
 
-        await liquidityPool.initialiseAave()
+        await liquidityPool.initialiseAave();
 
-        await dai.approve(liquidityPool.address, deposit)
+        await dai.approve(liquidityPool.address, deposit);
         await liquidityPool.deposit(deposit);
     });
 
