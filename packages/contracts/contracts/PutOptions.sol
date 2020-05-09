@@ -78,16 +78,8 @@ contract PutOptions is Options {
   }
 
   /// @dev Exercise an option to claim the pool tokens
-  /// @param optionID The ID number of the option which is to be exercised
-  function exercise(uint optionID) public override returns (uint amount) {
-      Option storage option = options[optionID];
-
-      require(option.startTime <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
-      require(option.expirationTime >= now, 'Option has expired'); // solium-disable-line security/no-block-members
-      require(option.holder == msg.sender, "Wrong msg.sender");
-      require(option.state == State.Active, "Can't exercise inactive option");
-
-      option.state = State.Expired;
+  /// @param option The option which is to be exercised
+  function _internalExercise(Option memory option) internal override {
 
       // Take ownership of paymentTokens to be paid into liquidity pool.
       require(
@@ -95,10 +87,8 @@ contract PutOptions is Options {
         "Insufficient funds"
       );
 
-      uint256 exchangedAmount = exchangeTokens(option.amount);
+      exchangeTokens(option.amount);
 
       pool.sendTokens(option.holder, option.strikeAmount);
-      emit Exercise(optionID, exchangedAmount);
-      return option.amount;
   }
 }

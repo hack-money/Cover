@@ -34,6 +34,8 @@ abstract contract Options is IOptions, Ownable {
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
     
+    function _internalExercise(Option memory option) internal virtual;
+
     
     constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t) public {
         pool = new LiquidityPool(poolToken);
@@ -52,6 +54,25 @@ abstract contract Options is IOptions, Ownable {
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public override pure returns (uint256) {
         return 0;
     }
+
+    /// @dev Exercise an option to claim the pool tokens
+    /// @param optionID The ID number of the option which is to be exercised
+    function exercise(uint optionID) public override returns (uint256){
+        Option storage option = options[optionID];
+
+        require(option.startTime <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
+        require(option.expirationTime >= now, 'Option has expired'); // solium-disable-line security/no-block-members
+        require(option.holder == msg.sender, "Wrong msg.sender");
+        require(option.state == State.Active, "Can't exercise inactive option");
+
+        option.state = State.Exercised;
+
+        _internalExercise(option);
+
+        emit Exercise(optionID, option.amount);
+        return option.amount;
+    }
+
 
     /// @dev Unlocks collateral for an array of expired options.
     ///      This is done as they can no longer be exercised.
