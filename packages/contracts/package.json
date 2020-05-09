@@ -21,7 +21,7 @@
     "export": "buidler run scripts/export.js",
     "has:changed": "bash ../monorepo-scripts/ci/hasChanged.sh contracts",
     "test": "waffle && mocha test/**/*.js --timeout 1000000",
-    "lint:js": "eslint --config .eslintrc.js ./test",
+    "lint:js": "eslint --config .eslintrc.js ./test ./scripts",
     "lint:sol": "solhint \"contracts/**/*.sol\""
   },
   "files": [
@@ -58,7 +58,8 @@
     "ganache-core": "^2.10.2",
     "mocha": "^7.1.2",
     "moment": "^2.25.3",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "web3": "^1.2.7"
   },
   "config": {
     "commitizen": {
