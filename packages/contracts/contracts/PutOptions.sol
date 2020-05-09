@@ -15,16 +15,6 @@ contract PutOptions is Options {
   constructor(IERC20 poolToken, IERC20 paymentToken)
     Options(poolToken, paymentToken, OptionType.Put) public {}
 
-  /// @dev Exchange an amount of payment token into the pool token.
-  ///      The pool tokens are then sent to the liquidity pool.
-  /// @param inputAmount The amount of payment token to be exchanged
-  /// @return exchangedAmount The amount of pool tokens sent to the pool
-  function exchangeTokens(uint inputAmount) internal returns (uint exchangedAmount) {
-    // TODO: use uniswap V2 to exchange tokens
-    // TODO: pay exchanged tokens into pool
-    // TODO: return exchanged amount
-  }
-
 
   /**
     * @dev Create an option to buy pool tokens at the current price
@@ -33,7 +23,7 @@ contract PutOptions is Options {
     * @param amount [placeholder]
     * @return optionID A uint object representing the ID number of the created option.
     */
-  function create(uint period, uint amount) public override returns (uint optionID) {
+  function create(uint period, uint amount) public returns (uint optionID) {
     return create(period, amount, 103000000);
   }
 
@@ -64,13 +54,14 @@ contract PutOptions is Options {
 
       paymentToken.transfer(owner(), fee);
 
+      optionID = options.length;
+
       // Exchange paymentTokens into poolTokens to be added to pool
-      exchangeTokens(premium);
+      exchangeTokens(premium, optionID);
 
       // Lock the assets in the liquidity pool which this asset would be exercised against
       // pool.lock(strikeAmount);
 
-      optionID = options.length;
       // solium-disable-next-line security/no-block-members
       options.push(Option(State.Active, msg.sender, strikeAmount, amount, now + activationDelay, now + duration));
 
@@ -79,7 +70,7 @@ contract PutOptions is Options {
 
   /// @dev Exercise an option to claim the pool tokens
   /// @param option The option which is to be exercised
-  function _internalExercise(Option memory option) internal override {
+  function _internalExercise(Option memory option, optionID) internal override {
 
       // Take ownership of paymentTokens to be paid into liquidity pool.
       require(
@@ -87,7 +78,7 @@ contract PutOptions is Options {
         "Insufficient funds"
       );
 
-      exchangeTokens(option.amount);
+      exchangeTokens(option.amount, optionID);
 
       pool.sendTokens(option.holder, option.strikeAmount);
   }
