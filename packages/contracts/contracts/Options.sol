@@ -38,8 +38,8 @@ abstract contract Options is IOptions, Ownable {
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
     
-    function _internalExercise(Option memory option) internal virtual;
     function _internalUnlock(Option memory option) internal virtual;
+    function _internalExercise(Option memory option, uint optionID) internal virtual;
 
     
     constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t) public {
@@ -50,7 +50,7 @@ abstract contract Options is IOptions, Ownable {
         initialiseUniswap();
     }
 
-    function initialiseUniswap() internal override onlyOwner {
+    function initialiseUniswap() internal {
         // ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
     }
@@ -89,7 +89,7 @@ abstract contract Options is IOptions, Ownable {
 
         option.state = State.Exercised;
 
-        _internalExercise(option);
+        _internalExercise(option, optionID);
 
         emit Exercise(optionID, option.amount);
         return option.amount;
@@ -134,7 +134,7 @@ abstract contract Options is IOptions, Ownable {
       require(inputAmount != uint(0), 'Options/ Swapping 0 tokens');
       paymentToken.approve(address(uniswapRouter), inputAmount);
 
-      uint deadline = now + 0.5 days;
+      uint deadline = now + 2 minutes;
       address[] memory path = new address[](2);
       path[0] = address(paymentToken);
       path[1] = address(pool.linkedToken());
