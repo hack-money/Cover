@@ -73,7 +73,7 @@ async function v2Fixture(provider, [wallet]) {
 }
 
 // Fixture that sets up the option, liquidityPool and Uniswap V2
-async function generalFixture(provider, [liquidityProvider, optionsBuyer]) {
+async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     const { 
         token0,
         token1,
@@ -121,5 +121,5 @@ module.exports = {
   expandTo18Decimals,
   pairFixture,
   v2Fixture,
-  generalFixture
+  generalTestFixture
 };
