@@ -237,4 +237,50 @@ contract Options is IOptions, Ownable {
       emit Exchange(optionId, address(paymentToken), inputAmount, address(pool.linkedToken()), exchangeAmount[1]);
       return exchangeAmount[1];
     }
+    /// @dev Calculate the fees associated with an option purchase
+    /// @param duration Time period until the option expires 
+    /// @param amount [placeholder]
+    /// @param strikePrice Price at which the asset can be exercised
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice) public view override returns (uint256, uint256) {
+        uint256 platformFee = calculatePlatformFee(amount);
+
+        uint256 underlyingPrice = getPoolTokenPrice(address(poolToken()));
+        uint256 volatility = getVolatility();
+        uint256 premium = calculatePremium(underlyingPrice, duration, volatility);
+
+        return (platformFee, premium);
+    }
+
+    /// @dev Computes platform fee for providing the option. Calculated as 1% of the 
+    /// amount for which an option is purchased
+    function calculatePlatformFee(uint256 amount) public view returns (uint256) {
+        uint256 platformPercentage = 1;
+        return (amount.mul(platformPercentage)).div(100);
+    }
+
+    /// @dev Computes the premium charged on the option. Uses an approximation to 
+    /// Black Scholes
+    function calculatePremium(uint256 underlyingPrice, uint256 duration, uint256 volatility) public view returns (uint256) {
+        // https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
+        // Note: only works well for short duration periods
+        // premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
+        return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(100);
+    }
+
+    function getPoolTokenPrice(address poolToken) public view returns (uint256) {
+        
+    }
+
+    /// @dev Compute the square root of a value
+    function squareRoot(uint256 value) internal pure returns (uint256) {
+        // https://ethereum.stackexchange.com/questions/2910/can-i-square-root-in-solidity
+        uint256 z = (value.add(1)).div(2);
+        uint256 y = value;
+        while (z < y) {
+            y = z;
+            uint256 fraction = value.div(z.add(z));
+            z = fraction.div(2);
+        }
+        return y;
+    }
 }
