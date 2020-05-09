@@ -8,6 +8,10 @@ const UniswapV2Router01 = require('@uniswap/v2-periphery/build/UniswapV2Router01
 const WETH9 = require('@uniswap/v2-periphery/build/WETH9.json');
 const ERC20Mintable = require('../../build/ERC20Mintable.json');
 
+const CallOptions = require('../../build/CallOptions.json');
+const LiquidityPool = require('../../build/LiquidityPool.json');
+const { deployTestContract } = require('../helpers/deployTestContract');
+
 const { expandTo18Decimals } = require("./utilities")
 
 const overrides = {
@@ -38,7 +42,7 @@ async function pairFixture(provider, [wallet]) {
   return { factory, token0, token1, pair }
 }
 
-async function v2Fixture(provider, [wallet]){
+async function v2Fixture(provider, [wallet]) {
 
   // deploy core and initialise
   const { factory, token0, token1, pair } = await pairFixture(provider, [wallet])
@@ -68,8 +72,54 @@ async function v2Fixture(provider, [wallet]){
   }
 }
 
+// Fixture that sets up the option, liquidityPool and Uniswap V2
+async function generalFixture(provider, [liquidityProvider, optionsBuyer]) {
+    const { 
+        token0,
+        token1,
+        router,
+        pair,
+    } = await v2Fixture(provider, [liquidityProvider])
+
+    const poolToken = token0;
+    const paymentToken = token1;
+
+    let optionsContract = await deployTestContract(
+        liquidityProvider,
+        CallOptions,
+        [poolToken.address, paymentToken.address]
+    );
+    await optionsContract.setUniswapRouter(router.address);
+
+    // liquidityProvider no longer interacts with options contract
+    optionsContract = optionsContract.connect(optionsBuyer);
+
+    const liquidityPoolAddress = await optionsContract.pool();
+    const liquidityPool = new Contract(
+        liquidityPoolAddress,
+        LiquidityPool.abi,
+        liquidityProvider
+    );
+
+    // Add liquidity to Uniswap
+    const token0Amount = expandTo18Decimals(50);
+    const token1Amount = expandTo18Decimals(100);
+
+    await poolToken.transfer(pair.address, token0Amount);
+    await paymentToken.transfer(pair.address, token1Amount);
+    await pair.mint(liquidityProvider.address);
+
+    return {
+        liquidityPool,
+        optionsContract,
+        poolToken,
+        paymentToken
+    }
+}
+
 module.exports = {
   expandTo18Decimals,
   pairFixture,
-  v2Fixture
+  v2Fixture,
+  generalFixture
 };
