@@ -18,7 +18,7 @@ import {Option, OptionType, State} from "./Types.sol";
  * @dev Base option contract
  * Copyright 2020 Tom Waite, Tom French
  */
-contract Options is IOptions, Ownable {
+abstract contract Options is IOptions, Ownable {
     using SafeMath for uint256;
 
     Option[] public options; // Array of all created options
@@ -79,7 +79,7 @@ contract Options is IOptions, Ownable {
 
     /// @dev Exercise an option to claim the pool tokens
     /// @param optionID The ID number of the option which is to be exercised
-    function exercise(uint optionID) public override returns (uint256){
+    function exercise(uint optionID) public returns (uint256){
         Option storage option = options[optionID];
 
         require(option.startTime <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
