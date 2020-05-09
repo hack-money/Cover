@@ -28,7 +28,6 @@ contract Options is IOptions, Ownable {
     IERC20 public override paymentToken; // Token for which exercised options will pay in
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
     OptionType public override optionType; // Does this contract sell put or call options?
-    bool internal uniswapInitialised;
 
     uint constant priceDecimals = 1e8; // number of decimal places in strike price
     uint constant activationDelay = 15 minutes;
@@ -53,13 +52,12 @@ contract Options is IOptions, Ownable {
         initialiseUniswap();
     }
 
-    function initialiseUniswap() public onlyOwner {
+    function initialiseUniswap() public override onlyOwner {
         // ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
-        uniswapInitialised = true;
     }
 
-    function setUniswapRouter(address _uniswapRouter) public onlyOwner {
+    function setUniswapRouter(address _uniswapRouter) public override onlyOwner {
         uniswapRouter = IUniswapV2Router01(_uniswapRouter);
         emit SetUniswapRouter(_uniswapRouter);
     }
@@ -72,6 +70,11 @@ contract Options is IOptions, Ownable {
         return options.length;
     }
 
+    function getOptionInfo(uint optionID) public override view returns (address, uint, uint, uint, uint) {
+        Option memory option = options[optionID];
+        return (option.holder, option.strikeAmount, option.amount, option.startTime, option.expirationTime);
+    }
+    
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public override pure returns (uint256) {
         return 0;
     }
@@ -126,10 +129,11 @@ contract Options is IOptions, Ownable {
     /// @dev Exchange an amount of payment token into the pool token.
     ///      The pool tokens are then sent to the liquidity pool.
     /// @param inputAmount The amount of payment token to be exchanged
+    /// @param optionId - unique option identifier, for use in emitting an event and linking
+    /// the option exercise to the exchange
     /// @return exchangedAmount The amount of pool tokens sent to the pool
     function exchangeTokens(uint inputAmount, uint optionId) internal returns (uint) {
       require(inputAmount != uint(0), 'Options/ Swapping 0 tokens');
-      // approve router contract to take payment tokens
       paymentToken.approve(address(uniswapRouter), inputAmount);
 
       address paymentTokenAddress = address(paymentToken);
@@ -140,7 +144,6 @@ contract Options is IOptions, Ownable {
       path[0] = paymentTokenAddress;
       path[1] = poolTokenAddress;
 
-      // TODO: calculate a more accurate amountOutMin
       uint[] memory exchangeAmount = uniswapRouter.swapExactTokensForTokens(inputAmount, 0, path, address(pool), deadline);
 
       // exchangeAmount[0] = inputAmount
