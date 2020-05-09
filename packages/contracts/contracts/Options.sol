@@ -50,7 +50,7 @@ abstract contract Options is IOptions, Ownable {
         initialiseUniswap();
     }
 
-    function initialiseUniswap() public override onlyOwner {
+    function initialiseUniswap() internal override onlyOwner {
         // ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
     }
@@ -134,19 +134,16 @@ abstract contract Options is IOptions, Ownable {
       require(inputAmount != uint(0), 'Options/ Swapping 0 tokens');
       paymentToken.approve(address(uniswapRouter), inputAmount);
 
-      address paymentTokenAddress = address(paymentToken);
-      address poolTokenAddress = address(pool.linkedToken());
-
       uint deadline = now + 0.5 days;
       address[] memory path = new address[](2);
-      path[0] = paymentTokenAddress;
-      path[1] = poolTokenAddress;
+      path[0] = address(paymentToken);
+      path[1] = address(pool.linkedToken());
 
       uint[] memory exchangeAmount = uniswapRouter.swapExactTokensForTokens(inputAmount, 0, path, address(pool), deadline);
 
       // exchangeAmount[0] = inputAmount
       // exchangeAmount[i > 0] = subsequent output amounts
-      emit Exchange(optionId, paymentTokenAddress, inputAmount, poolTokenAddress, exchangeAmount[1]);
+      emit Exchange(optionId, address(paymentToken), inputAmount, address(pool.linkedToken()), exchangeAmount[1]);
       return exchangeAmount[1];
     }
 }

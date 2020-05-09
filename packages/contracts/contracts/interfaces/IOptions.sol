@@ -15,8 +15,6 @@ interface IOptions {
     function paymentToken() external view returns (IERC20);
     function uniswapRouter() external view returns (IUniswapV2Router01);
 
-    function initialiseUniswap() external;
-
     function setUniswapRouter(address _uniswapRouter) external;
 
     function optionType() external view returns (OptionType);
