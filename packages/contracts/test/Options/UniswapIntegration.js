@@ -14,7 +14,7 @@ const { contextForOptionHasActivated } = require('../helpers/contexts');
 
 use(solidity);
 
-describe.only('Uniswap integration', async () => {
+describe('Uniswap integration', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;
@@ -95,7 +95,7 @@ describe.only('Uniswap integration', async () => {
         });
 
         contextForOptionHasActivated(provider, function () {
-            it.only('should exchange tokens when an option is exercised', async () => {
+            it('should exchange tokens when an option is exercised', async () => {
                 const [
                     ,
                     strikeAmount,
