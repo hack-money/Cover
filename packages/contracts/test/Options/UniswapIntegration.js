@@ -5,62 +5,48 @@ const {
     createFixtureLoader,
 } = require('ethereum-waffle');
 const { Contract } = require('ethers');
-const { bigNumberify, Interface } = require('ethers/utils');
-const { v2Fixture } = require('../shared/fixtures')
+const { bigNumberify } = require('ethers/utils');
+const { v2Fixture } = require('../shared/fixtures');
 
 const CallOptions = require('../../build/CallOptions.json');
 const LiquidityPool = require('../../build/LiquidityPool.json');
-const ERC20Mintable = require('../../build/ERC20Mintable.json');
 const { deployTestContract } = require('../helpers/deployTestContract');
+const { expandTo18Decimals } = require('../shared/utilities');
 
-const {
-    contextForSpecificTime,
-    contextForOptionHasActivated,
-    contextForOptionHasExpired,
-} = require('../helpers/contexts');
+const { VALID_DURATION } = require('../helpers/constants');
 
 use(solidity);
 
-describe.only('CallOptions functionality', async () => {
+describe.only('Uniswap integration', async () => {
     let poolToken;
     let paymentToken;
+    let router;
     let liquidityPool;
     let optionsContract;
+    let pair;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
 
     const provider = new MockProvider({ gasLimit: 9999999 });
-    const [liquidityProvider, optionsBuyer, wallet] = provider.getWallets();
-    const OptionsInterface = new Interface(CallOptions.abi);
+    const [liquidityProvider, optionsBuyer] = provider.getWallets();
 
-    const loadFixture = createFixtureLoader(provider, [wallet]);
+    const loadFixture = createFixtureLoader(provider, [liquidityProvider]);
 
-    let token0;
-    let token1;
-    let WETH;
-    let factory;
-    let router;
-    let pair;
     beforeEach(async () => {
+        // setup Uniswap
         const fixture = await loadFixture(v2Fixture);
-
-        token0 = fixture.token0;
-        token1 = fixture.token1;
-        WETH = fixture.WETH;
-        factory = fixture.factory;
+        poolToken = fixture.token0;
+        paymentToken = fixture.token1;
         router = fixture.router;
         pair = fixture.pair;
 
-        poolToken = await deployTestContract(liquidityProvider, ERC20Mintable);
-        paymentToken = await deployTestContract(
-            liquidityProvider,
-            ERC20Mintable
-        );
         optionsContract = await deployTestContract(
             liquidityProvider,
             CallOptions,
             [poolToken.address, paymentToken.address]
         );
+
+        await optionsContract.setUniswapRouter(router.address);
 
         // liquidityProvider no longer interacts with options contract
         optionsContract = optionsContract.connect(optionsBuyer);
@@ -84,7 +70,38 @@ describe.only('CallOptions functionality', async () => {
             .approve(optionsContract.address, numPaymentTokens);
     });
 
-    it('should pass', async () => {
-        console.log('hello');
+    async function addLiquidity(token0Amount, token1Amount) {
+        await poolToken.transfer(pair.address, token0Amount);
+        await paymentToken.transfer(pair.address, token1Amount);
+        await pair.mint(liquidityProvider.address);
+    }
+
+    it.only('should exchange tokens when option is created', async () => {
+        const token0Amount = expandTo18Decimals(50);
+        const token1Amount = expandTo18Decimals(100);
+
+        await addLiquidity(token0Amount, token1Amount);
+
+        const optionValue = 100;
+        const premium = 10; // amount being swapped
+        const duration = VALID_DURATION.asSeconds();
+        const optionId = bigNumberify(0);
+
+        const initialPoolBalance = await liquidityPool.getPoolERC20Balance();
+
+        await expect(optionsContract.create(duration, optionValue))
+            .to.emit(optionsContract, 'Exchange')
+            .withArgs(
+                optionId,
+                paymentToken.address,
+                premium,
+                poolToken.address,
+                4
+            );
+        
+        const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
+        expect(finalPoolBalance).to.equal(initialPoolBalance.add(bigNumberify(4)));
     });
+
+    it('should exchange tokens when an option is exercised', async () => {});
 });

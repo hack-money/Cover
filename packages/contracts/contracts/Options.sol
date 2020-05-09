@@ -38,7 +38,8 @@ contract Options is IOptions, Ownable {
     event Create (uint indexed optionId, address indexed account, uint fee, uint premium);
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
-    event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken);
+    event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
+    event SetUniswapRouter (address indexed uniswapRouter);
     
     function _internalExercise(Option memory option) internal virtual;
     function _internalUnlock(Option memory option) internal virtual;
@@ -56,6 +57,11 @@ contract Options is IOptions, Ownable {
         // ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
         uniswapInitialised = true;
+    }
+
+    function setUniswapRouter(address _uniswapRouter) public onlyOwner {
+        uniswapRouter = IUniswapV2Router01(_uniswapRouter);
+        emit SetUniswapRouter(_uniswapRouter);
     }
 
     function poolToken() public override view returns (IERC20) {
@@ -130,15 +136,16 @@ contract Options is IOptions, Ownable {
       address poolTokenAddress = address(pool.linkedToken());
 
       uint deadline = now + 0.5 days;
-      address[] memory path;
+      address[] memory path = new address[](2);
       path[0] = paymentTokenAddress;
       path[1] = poolTokenAddress;
 
       // TODO: calculate a more accurate amountOutMin
       uint[] memory exchangeAmount = uniswapRouter.swapExactTokensForTokens(inputAmount, 0, path, address(pool), deadline);
-      require(exchangeAmount.length == 1, 'Options/ Uniswap problem');
 
-      emit Exchange(optionId, paymentTokenAddress, inputAmount, poolTokenAddress);
-      return exchangeAmount[0];
+      // exchangeAmount[0] = inputAmount
+      // exchangeAmount[i > 0] = subsequent output amounts
+      emit Exchange(optionId, paymentTokenAddress, inputAmount, poolTokenAddress, exchangeAmount[1]);
+      return exchangeAmount[1];
     }
 }
