@@ -17,15 +17,7 @@ library Pricing {
      */
     function calculatePremium(uint256 strikePrice, uint256 amount, uint256 duration, uint underlyingPrice, bool putOption) public view returns (uint256) {
         uint256 volatility = getVolatility();
-        uint256 intrinsicValue = uint256(0);
-
-         // intrinsic value per unit, multiplied by number of units
-        if (putOption) {
-            intrinsicValue = (strikePrice.sub(underlyingPrice)).mul(amount);
-        } else if (!putOption) {
-            intrinsicValue = (underlyingPrice.sub(strikePrice)).mul(amount);
-        }
-
+        uint256 intrinsicValue = calculateIntrinsicValue(strikePrice, amount, underlyingPrice, putOption);
         uint256 timeValue = calculateTimeValue(underlyingPrice, duration, volatility);
         return intrinsicValue.add(timeValue);
     }
@@ -42,6 +34,25 @@ library Pricing {
         // Note: only works well for `short` duration periods
         // premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
         return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(100);
+    }
+
+    function calculateIntrinsicValue(uint256 strikePrice, uint256 amount, uint256 underlyingPrice, bool putOption) public pure returns (uint256) {
+         // intrinsic value per unit, multiplied by number of units
+        if (putOption) {
+            if (strikePrice < underlyingPrice) {
+                return 0; // if intrinsicValue is negative, return 0
+            } else {
+                return (strikePrice.sub(underlyingPrice)).mul(amount); // intrinsicValue = (strikePrice - underlyingPrice) * amount
+            }
+        }
+        
+        if (!putOption) {
+            if (underlyingPrice < strikePrice) {
+                return 0; // if intrinsicValue is negative, return 0
+            } else {
+                return (underlyingPrice.sub(strikePrice)).mul(amount);
+            }
+        }
     }
 
     /**

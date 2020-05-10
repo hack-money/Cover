@@ -29,22 +29,66 @@ describe.only('Pricing', async () => {
         const fee = amount / 100; // 1% fee
         const result = await pricingLibrary.calculatePlatformFee(amount);
         expect(result).to.equal(fee);
-
     });
 
-    it('should calculate intrinsic value of a PUT option', async () => {
-
+    describe('Intrinsic value', async () => {
+        it('should calculate intrinsic value of an out of the money PUT option', async () => {
+            const strikePrice = 200;
+            const amount = 3;
+            const underlyingPrice = 250;
+            const putOption = true;
+            const intrinsicValue = 0; // 0 was the intrinsic value would be negative
+    
+            const result = await pricingLibrary.calculateIntrinsicValue(strikePrice, amount, underlyingPrice, putOption);
+            expect(result).to.equal(intrinsicValue);
+        });
+    
+    
+        it('should calculate intrinsic value of an in the money PUT option', async () => {
+            const strikePrice = 200;
+            const amount = 3;
+            const underlyingPrice = 180;
+            const putOption = true;
+            const intrinsicValue = (strikePrice - underlyingPrice) * amount; // 0 was the intrinsic value would be negative
+    
+            const result = await pricingLibrary.calculateIntrinsicValue(strikePrice, amount, underlyingPrice, putOption);
+            expect(result).to.equal(intrinsicValue);
+        });
+    
+        it('should calculate intrinsic value of an out of the money CALL option', async () => {
+            const strikePrice = 200;
+            const amount = 3;
+            const underlyingPrice = 180;
+            const putOption = false;
+            const intrinsicValue = 0; // 0 was the intrinsic value would be negative
+    
+            const result = await pricingLibrary.calculateIntrinsicValue(strikePrice, amount, underlyingPrice, putOption);
+            expect(result).to.equal(intrinsicValue);
+        });
+    
+        it('should calculate intrinsic value of an in the money CALL option', async () => {
+            const strikePrice = 200;
+            const amount = 3;
+            const underlyingPrice = 220;
+            const putOption = false;
+            const intrinsicValue = (underlyingPrice - strikePrice) * amount; // 0 was the intrinsic value would be negative
+    
+            const result = await pricingLibrary.calculateIntrinsicValue(strikePrice, amount, underlyingPrice, putOption);
+            expect(result).to.equal(intrinsicValue);
+        });
     });
 
-    it('should calculate intrinsic value of a CALL option', async () => {
+    describe('Time value', async () => {
+        it('should calculate time value CALL option', async () => {
 
-    });
-
-    it('should time value of an option', async () => {
-
-    });
-
-    it('should calculate premium of an option', async () => {
-
+        });
+    
+        it('should time value of an option', async () => {
+    
+        });
+    
+        it('should calculate premium of an option', async () => {
+    
+        });
     });
 });
