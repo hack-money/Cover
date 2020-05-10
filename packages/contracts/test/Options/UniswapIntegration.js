@@ -112,15 +112,13 @@ describe('Uniswap integration', async () => {
                         paymentToken.address,
                         strikeAmount,
                         poolToken.address,
-                        51  // TODO: generalise/calculate this expected output
+                        51 // TODO: generalise/calculate this expected output
                     )
                     .to.emit(optionsContract, 'Exercise')
                     .withArgs(optionID, optionValue);
 
                 const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
-                expect(finalPoolBalance).to.equal(
-                    initialPoolBalance.add(51)
-                );
+                expect(finalPoolBalance).to.equal(initialPoolBalance.add(51));
             });
         });
     });

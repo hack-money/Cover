@@ -1,25 +1,13 @@
-usePlugin("@nomiclabs/buidler-etherscan");
-require("dotenv").config({ path: ".env.development" });
+import { usePlugin } from '@nomiclabs/buidler/config';
 
-usePlugin("@nomiclabs/buidler-waffle");
+usePlugin('@nomiclabs/buidler-etherscan');
+require('dotenv').config({ path: '.env.development' });
 
-// This is a sample Buidler task. To learn how to create your own go to
-// https://buidler.dev/guides/create-task.html
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await web3.eth.getAccounts();
-
-  for (const account of accounts) {
-    console.log(account);
-  }
-});
-
-task("export", "Exports the contract ABIs", async () => {
-  require("./scripts/export.js");
-});
+usePlugin('@nomiclabs/buidler-waffle');
 
 module.exports = {
   solc: {
-    version: "0.6.6",
+    version: '0.6.6',
     optimizer: {
       enabled: true,
       runs: 200,
@@ -29,7 +17,7 @@ module.exports = {
   mocha: {
     bail: true,
     enableTimeouts: false,
-    reporter: "spec",
+    reporter: 'spec',
   },
   networks: {
     rinkeby: {
@@ -42,7 +30,7 @@ module.exports = {
     },
   },
   etherscan: {
-    url: "https://api-rinkeby.etherscan.io/api",
+    url: 'https://api-rinkeby.etherscan.io/api',
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
