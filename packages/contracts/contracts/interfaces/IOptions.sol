@@ -25,7 +25,7 @@ interface IOptions {
     
     function exercise(uint optionID) external returns (uint);
 
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice) external view returns (uint256, uint256);
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) external view returns (uint256, uint256);
 
     function createATM(uint duration, uint amount, OptionType optionType) external returns (uint optionID);
     function create(uint duration, uint amount, uint strikePrice, OptionType optionType) external returns (uint optionID);

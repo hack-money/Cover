@@ -1,44 +1,50 @@
 const { use, expect } = require('chai');
 const { solidity, MockProvider } = require('ethereum-waffle');
-const { bigNumberify, Interface } = require('ethers/utils');
+const { bigNumberify } = require('ethers/utils');
 
 const { deployTestContract } = require('../helpers/deployTestContract');
-const CallOptions = require('../../build/CallOptions.json');
-const ERC20Mintable = require('../../build/ERC20Mintable.json');
-
-const { blackScholesApprox } = require('../helpers/optionPrices');
+const Pricing = require('../../build/Pricing.json');
 
 use(solidity);
 
-
-describe.only('OptionPrice', async () => {
-    const underlyingPrice = 100;
-    const strikePrice = 75;
-    const timePeriod = 10;
-    const volatility = 10;
-
-    let poolToken;
-    let paymentToken;
-    let optionsContract;
-
+describe.only('Pricing', async () => {
+    let pricingLibrary;
     const provider = new MockProvider({gasLimit: 9999999});
-    const [liquidityProvider, optionsBuyer] = provider.getWallets();
-    const OptionsInterface = new Interface(CallOptions.abi);
+    const [wallet] = provider.getWallets();
 
     beforeEach(async () => {
-        poolToken = await deployTestContract(liquidityProvider, ERC20Mintable);
-        paymentToken = await deployTestContract(liquidityProvider, ERC20Mintable);
-        optionsContract = await deployTestContract(liquidityProvider, CallOptions, [poolToken.address, paymentToken.address]);
-
-        // liquidityProvider no longer interacts with options contract
-        optionsContract = optionsContract.connect(optionsBuyer)
+        pricingLibrary = await deployTestContract(wallet, Pricing);
     });
 
-    it('should calculate an option price', async () => {
-        const result = await optionsContract.calculateFees(underlyingPrice, timePeriod, volatility);
-        console.log({ result });
-        // const expectedPrice = blackScholesApprox(underlyingPrice, timePeriod, volatility);
-        // console.log({ expectedPrice });
-        // expect(price).to.equal(expectedPrice);
+    it('should calculate square root of a value', async () => {
+        const value = 9;
+        const sqrtRoot = Math.sqrt(value);
+
+        const result = await pricingLibrary.squareRoot(value);
+        expect(result).to.equal(sqrtRoot);
+    });
+
+    it('should calculate platform fee', async () => {
+        const amount = 500;
+        const fee = amount / 100; // 1% fee
+        const result = await pricingLibrary.calculatePlatformFee(amount);
+        expect(result).to.equal(fee);
+
+    });
+
+    it('should calculate intrinsic value of a PUT option', async () => {
+
+    });
+
+    it('should calculate intrinsic value of a CALL option', async () => {
+
+    });
+
+    it('should time value of an option', async () => {
+
+    });
+
+    it('should calculate premium of an option', async () => {
+
     });
 });
