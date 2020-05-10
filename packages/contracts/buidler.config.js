@@ -1,4 +1,4 @@
-import { usePlugin } from '@nomiclabs/buidler/config';
+const { usePlugin } = require('@nomiclabs/buidler/config');
 
 usePlugin('@nomiclabs/buidler-etherscan');
 require('dotenv').config({ path: '.env.development' });
@@ -6,31 +6,31 @@ require('dotenv').config({ path: '.env.development' });
 usePlugin('@nomiclabs/buidler-waffle');
 
 module.exports = {
-  solc: {
-    version: '0.6.6',
-    optimizer: {
-      enabled: true,
-      runs: 200,
+    solc: {
+        version: '0.6.6',
+        optimizer: {
+            enabled: true,
+            runs: 200,
+        },
+        // evmVersion: "istanbul",
     },
-    // evmVersion: "istanbul",
-  },
-  mocha: {
-    bail: true,
-    enableTimeouts: false,
-    reporter: 'spec',
-  },
-  networks: {
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      chainId: 4,
-      from: process.env.TESTING_ACCOUNT_ADDRESS,
-      accounts: [process.env.TESTING_ACCOUNT],
-      // gas: 5500000,
-      gasPrice: 10000000000,
+    mocha: {
+        bail: true,
+        enableTimeouts: false,
+        reporter: 'spec',
     },
-  },
-  etherscan: {
-    url: 'https://api-rinkeby.etherscan.io/api',
-    apiKey: process.env.ETHERSCAN_API_KEY,
-  },
+    networks: {
+        rinkeby: {
+            url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
+            chainId: 4,
+            from: process.env.TESTING_ACCOUNT_ADDRESS,
+            accounts: [process.env.TESTING_ACCOUNT],
+            // gas: 5500000,
+            gasPrice: 10000000000,
+        },
+    },
+    etherscan: {
+        url: 'https://api-rinkeby.etherscan.io/api',
+        apiKey: process.env.ETHERSCAN_API_KEY,
+    },
 };
