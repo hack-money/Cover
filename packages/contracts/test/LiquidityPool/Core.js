@@ -1,39 +1,40 @@
 const { use, expect } = require('chai');
-const { solidity, MockProvider } = require('ethereum-waffle');
+const {
+    solidity,
+    MockProvider,
+    createFixtureLoader,
+} = require('ethereum-waffle');
 const { bigNumberify } = require('ethers/utils');
 
-const LiquidityPool = require('../../build/LiquidityPool.json');
-const ERC20Mintable = require('../../build/ERC20Mintable.json');
+const { generalTestFixture } = require('../helpers/fixtures');
 const { calculateLPTokenDelta } = require('../helpers/calculateLPTokenDelta');
-const { deployTestContract } = require('../helpers/deployTestContract');
 
 use(solidity);
 
 describe('Core liquidity pool functionality', async () => {
+    let poolToken;
     let liquidityPool;
-    let erc20;
-    const numUserTokens = 20;
+    const numPoolTokens = 20;
     const provider = new MockProvider({ gasLimit: 9999999 });
-    const [user] = provider.getWallets();
+    const [liquidityProvider, optionsBuyer] = provider.getWallets();
+
+    const loadFixture = createFixtureLoader(provider, [
+        liquidityProvider,
+        optionsBuyer,
+    ]);
 
     beforeEach(async () => {
-        erc20 = await deployTestContract(user, ERC20Mintable);
-        liquidityPool = await deployTestContract(user, LiquidityPool, [
-            erc20.address,
-        ]);
+        // Deploy and link together Options contract, liquidity pool and Uniswap. Extract relevant ERC20s
+        ({ liquidityPool, poolToken } = await loadFixture(generalTestFixture));
 
-        await erc20.mint(user.address, numUserTokens);
-        await erc20.approve(liquidityPool.address, numUserTokens);
-    });
-
-    it('should set owner of pool', async () => {
-        const owner = await liquidityPool.owner();
-        expect(owner).to.equal(user.address);
+        // Give liquidityProvider tokens to buy deposit into pool
+        await poolToken.mint(liquidityProvider.address, numPoolTokens);
+        await poolToken.approve(liquidityPool.address, numPoolTokens);
     });
 
     it('should set linked ERC20 token', async () => {
         const linkedToken = await liquidityPool.linkedToken();
-        expect(linkedToken).to.equal(erc20.address);
+        expect(linkedToken).to.equal(poolToken.address);
     });
 
     describe('deposit', () => {
@@ -57,18 +58,18 @@ describe('Core liquidity pool functionality', async () => {
             });
 
             it('should add liquidity to the pool', async () => {
-                const userPreDepositBalance = await erc20.balanceOf(
-                    user.address
+                const userPreDepositBalance = await poolToken.balanceOf(
+                    liquidityProvider.address
                 );
-                expect(userPreDepositBalance).to.equal(numUserTokens);
 
                 await liquidityPool.deposit(deposit);
 
-                const userPostDepositBalance = await erc20.balanceOf(
-                    user.address
+                const userPostDepositBalance = await poolToken.balanceOf(
+                    liquidityProvider.address
                 );
+
                 expect(userPostDepositBalance).to.equal(
-                    userPreDepositBalance - deposit
+                    userPreDepositBalance.sub(deposit)
                 );
 
                 const liquidityPoolFinalBalance = await liquidityPool.getPoolERC20Balance();
@@ -77,13 +78,13 @@ describe('Core liquidity pool functionality', async () => {
 
             it('should mint appropriate number of LP tokens on liquidity addition', async () => {
                 const initialUserTokenNum = await liquidityPool.getUserLPBalance(
-                    user.address
+                    liquidityProvider.address
                 );
                 expect(initialUserTokenNum).to.equal(0);
 
                 await liquidityPool.deposit(deposit);
                 const finalUserTokenNum = await liquidityPool.getUserLPBalance(
-                    user.address
+                    liquidityProvider.address
                 );
 
                 expect(finalUserTokenNum).to.equal(
@@ -106,17 +107,17 @@ describe('Core liquidity pool functionality', async () => {
             it('should add liquidity to the pool', async () => {
                 const liquidityPoolInitialBalance = await liquidityPool.getPoolERC20Balance();
 
-                const userPreDepositBalance = await erc20.balanceOf(
-                    user.address
+                const userPreDepositBalance = await poolToken.balanceOf(
+                    liquidityProvider.address
                 );
 
                 await liquidityPool.deposit(deposit);
 
-                const userPostDepositBalance = await erc20.balanceOf(
-                    user.address
+                const userPostDepositBalance = await poolToken.balanceOf(
+                    liquidityProvider.address
                 );
                 expect(userPostDepositBalance).to.equal(
-                    userPreDepositBalance - deposit
+                    userPreDepositBalance.sub(deposit)
                 );
 
                 const liquidityPoolFinalBalance = await liquidityPool.getPoolERC20Balance();
@@ -127,12 +128,12 @@ describe('Core liquidity pool functionality', async () => {
 
             it('should mint appropriate number of LP tokens on liquidity addition', async () => {
                 const initialUserTokenNum = await liquidityPool.getUserLPBalance(
-                    user.address
+                    liquidityProvider.address
                 );
 
                 await liquidityPool.deposit(deposit);
                 const finalUserTokenNum = await liquidityPool.getUserLPBalance(
-                    user.address
+                    liquidityProvider.address
                 );
 
                 const poolERC20Balance = await liquidityPool.getPoolERC20Balance();
@@ -165,12 +166,16 @@ describe('Core liquidity pool functionality', async () => {
         });
 
         it('should withdraw liquidity from the pool', async () => {
-            const userPreWithdrawBalance = await erc20.balanceOf(user.address);
+            const userPreWithdrawBalance = await poolToken.balanceOf(
+                liquidityProvider.address
+            );
             const liquidityPoolBalancePreWithdraw = await liquidityPool.getPoolERC20Balance();
 
             await liquidityPool.withdraw(withdraw);
 
-            const userPostWithdrawBalance = await erc20.balanceOf(user.address);
+            const userPostWithdrawBalance = await poolToken.balanceOf(
+                liquidityProvider.address
+            );
             expect(userPostWithdrawBalance).to.equal(
                 bigNumberify(userPreWithdrawBalance).add(withdraw)
             );
@@ -183,13 +188,13 @@ describe('Core liquidity pool functionality', async () => {
 
         it('should burn appropriate number of LP tokens on liquidity withdraw', async () => {
             const userLPTokenNumPreWithdraw = await liquidityPool.getUserLPBalance(
-                user.address
+                liquidityProvider.address
             );
 
             await liquidityPool.withdraw(withdraw);
 
             const userLPTokenNumPostWithdraw = await liquidityPool.getUserLPBalance(
-                user.address
+                liquidityProvider.address
             );
 
             const poolERC20Balance = await liquidityPool.getPoolERC20Balance();
