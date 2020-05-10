@@ -1,6 +1,5 @@
 const { use, expect } = require('chai');
-const { solidity, MockProvider } = require('ethereum-waffle');
-const { Contract } = require('ethers');
+const { solidity, MockProvider, createFixtureLoader } = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
 
 const {
@@ -11,9 +10,7 @@ const {
 } = require('../helpers/constants');
 
 const CallOptions = require('../../build/CallOptions.json');
-const LiquidityPool = require('../../build/LiquidityPool.json');
-const ERC20Mintable = require('../../build/ERC20Mintable.json');
-const { deployTestContract } = require('../helpers/deployTestContract');
+const { generalTestFixture } = require('../shared/fixtures');
 
 const {
     contextForSpecificTime,
@@ -35,27 +32,21 @@ describe('CallOptions functionality', async () => {
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
     const OptionsInterface = new Interface(CallOptions.abi);
 
+    const loadFixture = createFixtureLoader(provider, [
+        liquidityProvider,
+        optionsBuyer,
+    ]);
+
+
     beforeEach(async () => {
-        poolToken = await deployTestContract(liquidityProvider, ERC20Mintable);
-        paymentToken = await deployTestContract(
-            liquidityProvider,
-            ERC20Mintable
-        );
-        optionsContract = await deployTestContract(
-            liquidityProvider,
-            CallOptions,
-            [poolToken.address, paymentToken.address]
-        );
+        // Deploy and link together Options contract, liquidity pool and Uniswap. Extract relevant ERC20s
+        ({
+            liquidityPool,
+            optionsContract,
+            poolToken,
+            paymentToken,
+        } = await loadFixture(generalTestFixture));
 
-        // liquidityProvider no longer interacts with options contract
-        optionsContract = optionsContract.connect(optionsBuyer);
-
-        const liquidityPoolAddress = await optionsContract.pool();
-        liquidityPool = new Contract(
-            liquidityPoolAddress,
-            LiquidityPool.abi,
-            liquidityProvider
-        );
         // Give liquidityProvider tokens to buy deposit into pool
         await poolToken.mint(liquidityProvider.address, numPoolTokens);
         await poolToken.approve(liquidityPool.address, numPoolTokens);

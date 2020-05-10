@@ -15,16 +15,6 @@ contract PutOptions is Options {
   constructor(IERC20 poolToken, IERC20 paymentToken)
     Options(poolToken, paymentToken, OptionType.Put) public {}
 
-  /// @dev Exchange an amount of payment token into the pool token.
-  ///      The pool tokens are then sent to the liquidity pool.
-  /// @param inputAmount The amount of payment token to be exchanged
-  /// @return exchangedAmount The amount of pool tokens sent to the pool
-  function exchangeTokens(uint inputAmount) internal returns (uint exchangedAmount) {
-    // TODO: use uniswap V2 to exchange tokens
-    // TODO: pay exchanged tokens into pool
-    // TODO: return exchanged amount
-  }
-
 
   /**
     * @dev Create an option to buy pool tokens at the current price
@@ -33,7 +23,7 @@ contract PutOptions is Options {
     * @param amount [placeholder]
     * @return optionID A uint object representing the ID number of the created option.
     */
-  function create(uint period, uint amount) public override returns (uint optionID) {
+  function create(uint period, uint amount) public returns (uint optionID) {
     return create(period, amount, 103000000);
   }
 
@@ -64,13 +54,14 @@ contract PutOptions is Options {
 
       paymentToken.transfer(owner(), fee);
 
+      optionID = options.length;
+
       // Exchange paymentTokens into poolTokens to be added to pool
-      exchangeTokens(premium);
+      exchangeTokens(premium, optionID);
 
       // Lock the assets in the liquidity pool which this asset would be exercised against
       // pool.lock(strikeAmount);
 
-      optionID = options.length;
       // solium-disable-next-line security/no-block-members
       options.push(Option(State.Active, msg.sender, strikeAmount, amount, now + activationDelay, now + duration));
 
@@ -78,16 +69,8 @@ contract PutOptions is Options {
   }
 
   /// @dev Exercise an option to claim the pool tokens
-  /// @param optionID The ID number of the option which is to be exercised
-  function exercise(uint optionID) public override returns (uint amount) {
-      Option storage option = options[optionID];
-
-      require(option.startTime <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
-      require(option.expirationTime >= now, 'Option has expired'); // solium-disable-line security/no-block-members
-      require(option.holder == msg.sender, "Wrong msg.sender");
-      require(option.state == State.Active, "Can't exercise inactive option");
-
-      option.state = State.Expired;
+  /// @param option The option which is to be exercised
+  function _internalExercise(Option memory option, uint optionID) internal override {
 
       // Take ownership of paymentTokens to be paid into liquidity pool.
       require(
@@ -95,10 +78,14 @@ contract PutOptions is Options {
         "Insufficient funds"
       );
 
-      uint256 exchangedAmount = exchangeTokens(option.amount);
+      exchangeTokens(option.amount, optionID);
 
       pool.sendTokens(option.holder, option.strikeAmount);
-      emit Exercise(optionID, exchangedAmount);
-      return option.amount;
+  }
+
+  /// @dev Unlocks collateral for option being marked as expired
+  /// @param option The expired option for which funds are to be unlocked.
+  function _internalUnlock(Option memory option) internal override {
+    pool.unlock(option.strikeAmount);
   }
 }
