@@ -85,4 +85,9 @@ contract CallOptions is Options {
         // pool.sendTokens(option.holder, option.amount);
     }
 
+    /// @dev Unlocks collateral for option being marked as expired
+    /// @param option The expired option for which funds are to be unlocked.
+    function _internalUnlock(Option memory option) internal override {
+      pool.unlock(option.amount);
+    }
 }

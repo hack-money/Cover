@@ -35,6 +35,7 @@ abstract contract Options is IOptions, Ownable {
     event Expire (uint indexed optionId);
     
     function _internalExercise(Option memory option) internal virtual;
+    function _internalUnlock(Option memory option) internal virtual;
 
     
     constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t) public {
@@ -97,11 +98,7 @@ abstract contract Options is IOptions, Ownable {
         option.state = State.Expired;
 
         // Unlocks the assets which this option would have been exercised against
-        // if(optionType == OptionType.Call) {
-        //     pool.unlock(option.amount);
-        // } else {
-        //     pool.unlock(option.strikeAmount);
-        // }
+        _internalUnlock(option);
 
         emit Expire(optionID);
     }
