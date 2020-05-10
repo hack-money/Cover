@@ -5,18 +5,9 @@ import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {Options} from "./Options.sol";
 import {State, Option, OptionType} from "./Types.sol";
 
-
 contract CallOptions is Options {
     constructor(IERC20 poolToken, IERC20 paymentToken)
     Options(poolToken, paymentToken, OptionType.Call) public {}
-
-    /// @dev Exchange an amount of payment token into the pool token.
-    ///      The pool tokens are then sent to the liquidity pool.
-    /// @param inputAmount The amount of payment token to be exchanged
-    /// @return exchangedAmount The amount of pool tokens sent to the pool
-    function exchangeTokens(uint inputAmount) internal returns (uint exchangedAmount) {
-      // TODO: use uniswap V2 to exchange tokens
-    }
 
     /**
       * @dev Create an option to buy pool tokens at the current price
@@ -25,7 +16,7 @@ contract CallOptions is Options {
       * @param amount [placeholder]
       * @return optionID A uint object representing the ID number of the created option.
       */
-    function create(uint duration, uint amount) public override returns (uint optionID) {
+    function create(uint duration, uint amount) public returns (uint optionID) {
       return create(duration, amount, 103000000);
     }
 
@@ -59,11 +50,11 @@ contract CallOptions is Options {
 
         // Lock the assets in the liquidity pool which this asset would be exercised against
         // pool.lock(amount);
+        optionID = options.length;
 
         // Exchange paymentTokens into poolTokens to be added to pool
-        exchangeTokens(premium);
+        exchangeTokens(premium, optionID);
 
-        optionID = options.length;
         // solium-disable-next-line security/no-block-members
         options.push(Option(State.Active, msg.sender, strikeAmount, amount, now + activationDelay, now + duration));
 
@@ -73,7 +64,7 @@ contract CallOptions is Options {
 
     /// @dev Exercise an option to claim the pool tokens
     /// @param option The option which is to be exercised
-    function _internalExercise(Option memory option) internal override {
+    function _internalExercise(Option memory option, uint optionID) internal override {
 
         // Take ownership of paymentTokens to be paid into liquidity pool.
         require(
@@ -81,7 +72,7 @@ contract CallOptions is Options {
           "Insufficient funds"
         );
 
-        exchangeTokens(option.strikeAmount);
+        exchangeTokens(option.strikeAmount, optionID);
         // pool.sendTokens(option.holder, option.amount);
     }
 
