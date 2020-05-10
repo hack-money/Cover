@@ -70,7 +70,7 @@ contract PutOptions is Options {
 
   /// @dev Exercise an option to claim the pool tokens
   /// @param option The option which is to be exercised
-  function _internalExercise(Option memory option, optionID) internal override {
+  function _internalExercise(Option memory option, uint optionID) internal override {
 
       // Take ownership of paymentTokens to be paid into liquidity pool.
       require(
