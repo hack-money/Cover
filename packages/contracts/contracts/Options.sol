@@ -33,6 +33,7 @@ contract Options is IOptions, Ownable {
     uint constant activationDelay = 15 minutes;
     uint256 constant minDuration = 1 days;
     uint256 constant maxDuration = 8 weeks;
+    uint256 public volatility = 6;
 
     event Create (uint indexed optionId, address indexed account, uint fee, uint premium);
     event Exercise (uint indexed optionId, uint exchangeAmount);
@@ -248,7 +249,7 @@ contract Options is IOptions, Ownable {
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public view override returns (uint256, uint256) {
         uint256 platformFee = Pricing.calculatePlatformFee(amount); // fee in terms of number of DAI
         uint256 underlyingPrice = getPoolTokenPrice(); // use an oracle
-        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice, putOption);
+        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice, volatility, putOption);
         return (platformFee, premium);
     }
 
@@ -256,5 +257,22 @@ contract Options is IOptions, Ownable {
     function getPoolTokenPrice() public view returns (uint256) {
         // return priceOracle.price(address(pool.linkedToken()));
         return 5;
+    }
+
+    /**
+    * @dev Get the volatility of the underlying asset.
+    * Currently hard coded to Bitmex's EVOL7D index - %6 - TODO: dynamically update
+    * Note: Represents volatility as a % - need to account for in subsequent arithmetic
+    */
+    function getVolatility() public view returns (uint256) {
+        return volatility;
+    }
+
+    /**
+    * @dev Set the volatility of the option underlying asset 
+    * TODO: dynamically update/set this
+    */
+    function setVolatility(uint256 _volatility) public onlyOwner {
+        volatility = _volatility;
     }
 }

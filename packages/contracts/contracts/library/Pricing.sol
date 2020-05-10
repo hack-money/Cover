@@ -16,8 +16,7 @@ library Pricing {
     * @param putOption - specification of whether the option is a PUT or CALL. `true` is a Put, `false` is a CALL
     * @return premium - amount a user has to pay to buy the option
      */
-    function calculatePremium(uint256 strikePrice, uint256 amount, uint256 duration, uint underlyingPrice, bool putOption) public view returns (uint256) {
-        uint256 volatility = getVolatility();
+    function calculatePremium(uint256 strikePrice, uint256 amount, uint256 duration, uint256 underlyingPrice, uint256 volatility, bool putOption) public pure returns (uint256) {
         uint256 intrinsicValue = calculateIntrinsicValue(strikePrice, amount, underlyingPrice, putOption);
         uint256 timeValue = calculateTimeValue(underlyingPrice, duration, volatility);
         return intrinsicValue.add(timeValue);
@@ -32,11 +31,15 @@ library Pricing {
      */
     function calculateTimeValue(uint256 underlyingPrice, uint256 duration, uint256 volatility) public pure returns (uint256) {
         // https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
-        // Note: only works well for `short` duration periods
+        // Assumptions: `short` duration periods, constant volatility of underlying asset, option close to the money
         // premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
-        return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(10);
+        return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(10).div(100); // extra div(100) to account for vol %
     }
 
+    /**
+    * @dev Calculate the intrinsic value of the option
+    * @return intrinsic value (units) TODO: establish common units
+     */
     function calculateIntrinsicValue(uint256 strikePrice, uint256 amount, uint256 underlyingPrice, bool putOption) public pure returns (uint256) {
          // intrinsic value per unit, multiplied by number of units
         if (putOption) {
@@ -88,13 +91,5 @@ library Pricing {
     function calculatePlatformFee(uint256 amount) public pure returns (uint256) {
         uint256 platformPercentage = 1;
         return (amount.mul(platformPercentage)).div(100);
-    }
-
-    /**
-    * @dev Get the volatility of the underlying asset
-    * @return volatility of the underlying asset
-    */
-    function getVolatility() public view returns (uint256) {
-        return 5;
     }
 }

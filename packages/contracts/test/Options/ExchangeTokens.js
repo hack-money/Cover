@@ -14,7 +14,7 @@ const { contextForOptionHasActivated } = require('../helpers/contexts');
 
 use(solidity);
 
-describe('Uniswap integration', async () => {
+describe.only('Exchange token, via Uniswap', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;

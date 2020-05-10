@@ -8,10 +8,10 @@ const Pricing = require('../../build/Pricing.json');
 use(solidity);
 
 function blackScholesApprox(underlyingPrice, duration, volatility) {
-    return 0.4 * underlyingPrice * Math.sqrt(duration) * volatility;
+    return 0.4 * underlyingPrice * Math.sqrt(duration) * (volatility / 100);
 }
 
-describe.only('Pricing', async () => {
+describe('Pricing', async () => {
     let pricingLibrary;
     const provider = new MockProvider({gasLimit: 9999999});
     const [wallet] = provider.getWallets();
@@ -108,7 +108,7 @@ describe.only('Pricing', async () => {
             const timeValue = blackScholesApprox(underlyingPrice, duration, volatility);
             
             const premium = intrinsicValue + timeValue;
-            const result = await pricingLibrary.calculatePremium(strikePrice, amount, duration, underlyingPrice, putOption);
+            const result = await pricingLibrary.calculatePremium(strikePrice, amount, duration, underlyingPrice, volatility, putOption);
             expect(result).to.equal(premium);
         });
     });
