@@ -7,7 +7,8 @@ library Pricing {
     using SafeMath for uint;
     
     /**
-    * @dev Computes the premium charged on the option. Option price = intrinsic value + time value
+    * @dev Computes the premium charged on the option. Option price = intrinsic value + time value. Note: platform
+    * fee not included in this calculation, accounted for seperately
     * @param strikePrice - price at which the underlying asset is bought/sold when the option is exercised
     * @param amount - amount of the asset for which an option is being purchased
     * @param duration - time period until expiry of the option
@@ -33,7 +34,7 @@ library Pricing {
         // https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
         // Note: only works well for `short` duration periods
         // premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
-        return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(100);
+        return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(10);
     }
 
     function calculateIntrinsicValue(uint256 strikePrice, uint256 amount, uint256 underlyingPrice, bool putOption) public pure returns (uint256) {

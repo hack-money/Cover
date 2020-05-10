@@ -7,6 +7,10 @@ const Pricing = require('../../build/Pricing.json');
 
 use(solidity);
 
+function blackScholesApprox(underlyingPrice, duration, volatility) {
+    return 0.4 * underlyingPrice * Math.sqrt(duration) * volatility;
+}
+
 describe.only('Pricing', async () => {
     let pricingLibrary;
     const provider = new MockProvider({gasLimit: 9999999});
@@ -79,16 +83,33 @@ describe.only('Pricing', async () => {
     });
 
     describe('Time value', async () => {
-        it('should calculate time value CALL option', async () => {
+        it('should calculate time value of an option', async () => {
+            const underlyingPrice = 200;
+            const duration = 16;
+            const volatility = 5;
 
+            const timeValue = blackScholesApprox(underlyingPrice, duration, volatility);
+            const result = await pricingLibrary.calculateTimeValue(underlyingPrice, duration, volatility);
+            expect(result).to.equal(timeValue);
         });
+    });
     
-        it('should time value of an option', async () => {
-    
-        });
-    
+    describe('Premium', async () => {
         it('should calculate premium of an option', async () => {
-    
+            // Scenario: In the money PUT option
+            const putOption = true;
+            const strikePrice = 200;
+            const amount = 100;
+            const underlyingPrice = 180;
+            const duration = 16;
+            const volatility = 5;
+
+            const intrinsicValue = (strikePrice - underlyingPrice) * amount;
+            const timeValue = blackScholesApprox(underlyingPrice, duration, volatility);
+            
+            const premium = intrinsicValue + timeValue;
+            const result = await pricingLibrary.calculatePremium(strikePrice, amount, duration, underlyingPrice, putOption);
+            expect(result).to.equal(premium);
         });
     });
 });

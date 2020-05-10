@@ -247,7 +247,6 @@ contract Options is IOptions, Ownable {
     /// @param putOption Bool determining whether the option is a put (true) or a call (false)
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public view override returns (uint256, uint256) {
         uint256 platformFee = Pricing.calculatePlatformFee(amount); // fee in terms of number of DAI
-        
         uint256 underlyingPrice = getPoolTokenPrice(); // use an oracle
         uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice, putOption);
         return (platformFee, premium);
