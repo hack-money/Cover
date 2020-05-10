@@ -216,6 +216,7 @@ contract Options is IOptions, Ownable {
         }
     }
 
+
     /// @dev Exchange an amount of payment token into the pool token.
     ///      The pool tokens are then sent to the liquidity pool.
     /// @param inputAmount The amount of payment token to be exchanged
@@ -238,20 +239,23 @@ contract Options is IOptions, Ownable {
       emit Exchange(optionId, address(paymentToken), inputAmount, address(pool.linkedToken()), exchangeAmount[1]);
       return exchangeAmount[1];
     }
+    
     /// @dev Calculate the fees associated with an option purchase
     /// @param duration Time period until the option expires 
     /// @param amount [placeholder]
     /// @param strikePrice Price at which the asset can be exercised
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice) public view override returns (uint256, uint256) {
+    /// @param putOption Bool determining whether the option is a put (true) or a call (false)
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public view override returns (uint256, uint256) {
         uint256 platformFee = Pricing.calculatePlatformFee(amount); // fee in terms of number of DAI
         
-        uint256 underlyingPrice = getPoolTokenPrice(address(poolToken())); // use an oracle
-        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice);
+        uint256 underlyingPrice = getPoolTokenPrice(); // use an oracle
+        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice, putOption);
         return (platformFee, premium);
     }
 
     /// @dev Get the current price of the poolToken, denominated in the payment token
     function getPoolTokenPrice() public view returns (uint256) {
-        return priceOracle.price(address(pool.linkedToken()));
+        // return priceOracle.price(address(pool.linkedToken()));
+        return 5;
     }
 }
