@@ -21,10 +21,14 @@ describe('Aave integration - liquidity pool', async () => {
     before(async () => {
         // TODO: test needs a user account loaded with Ropsten DAI - pass private key to startChain()
         user = await startChain();
-    })
+    });
 
     beforeEach(async () => {
-        dai = await new ethers.Contract(daiRopsten, moneyLegoERC20.dai.abi, user);
+        dai = await new ethers.Contract(
+            daiRopsten,
+            moneyLegoERC20.dai.abi,
+            user
+        );
 
         liquidityPool = await deployTestContract(user, LiquidityPool, [
             daiRopsten,

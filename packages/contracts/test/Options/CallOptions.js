@@ -1,5 +1,9 @@
 const { use, expect } = require('chai');
-const { solidity, MockProvider, createFixtureLoader } = require('ethereum-waffle');
+const {
+    solidity,
+    MockProvider,
+    createFixtureLoader,
+} = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
 
 const {
@@ -36,7 +40,6 @@ describe('CallOptions functionality', async () => {
         liquidityProvider,
         optionsBuyer,
     ]);
-
 
     beforeEach(async () => {
         // Deploy and link together Options contract, liquidity pool and Uniswap. Extract relevant ERC20s
