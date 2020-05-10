@@ -2,6 +2,7 @@ import React, { ReactElement } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
+import PoolCardContents from '../components/pool/PoolCardContents';
 
 const useStyles = makeStyles((theme) => ({
   layout: {
@@ -34,11 +35,16 @@ const AddLiquidityPage = (): ReactElement => {
   const classes = useStyles();
 
   return (
-    <Paper className={`${classes.pageElement} ${classes.paper}`}>
-      <Grid container direction="row" justify="space-around" spacing={3}>
-        Placeholder screen to add liquidity
-      </Grid>
-    </Paper>
+    <>
+      <Paper className={`${classes.pageElement} ${classes.paper}`}>
+        <Grid container direction="row" justify="space-around" spacing={3}>
+          Placeholder screen to add liquidity
+        </Grid>
+      </Paper>
+      <Paper className={`${classes.pageElement} ${classes.paper}`}>
+        <PoolCardContents />
+      </Paper>
+    </>
   );
 };
 
