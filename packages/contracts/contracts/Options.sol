@@ -11,6 +11,7 @@ import { ILiquidityPoolFactory } from './interfaces/ILiquidityPoolFactory.sol';
 
 
 import { IOptions } from './interfaces/IOptions.sol';
+import { Pricing } from './library/Pricing.sol';
 
 import {Option, OptionType, State} from "./Types.sol";
 
@@ -242,58 +243,15 @@ contract Options is IOptions, Ownable {
     /// @param amount [placeholder]
     /// @param strikePrice Price at which the asset can be exercised
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice) public view override returns (uint256, uint256) {
-        uint256 platformFee = calculatePlatformFee(amount); // fee in terms of number of DAI
-        uint256 premium = calculatePremium(strikePrice, amount, duration);
+        uint256 platformFee = Pricing.calculatePlatformFee(amount); // fee in terms of number of DAI
+        
+        uint256 underlyingPrice = getPoolTokenPrice(address(poolToken())); // use an oracle
+        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice);
         return (platformFee, premium);
     }
 
-    /// @dev Computes platform fee for providing the option. Calculated as 1% of the 
-    /// amount for which an option is purchased
-    function calculatePlatformFee(uint256 amount) public view returns (uint256) {
-        uint256 platformPercentage = 1;
-        return (amount.mul(platformPercentage)).div(100);
-    }
-
-    /// @dev Computes the premium charged on the option. Option price = intrinsic value + time value
-    function calculatePremium(uint256 strikePrice, uint256 amount, uint256 duration) public view returns (uint256) {
-        uint256 underlyingPrice = getPoolTokenPrice(address(poolToken())); // use an oracle
-        uint256 volatility = getVolatility(); // determine method
-
-        uint256 intrinsicValue = uint256(0);
-
-         // intrinsic value per unit, multiplied by number of units
-        if (optionType.PUT) {
-            intrinsicValue = (strikePrice.sub(underlyingPrice)).mul(amount);
-        } else if (optionType.CALL) {
-            intrinsicValue = (underlyingPrice.sub(strikePrice)).mul(amount);
-        }
-
-        uint256 timeValue = calculateTimeValue(underlyingPrice, duration, volatility);
-        return intrinsicValue.add(timeValue);
-    }
-
-    function calculateTimeValue(uint256 underlyingPrice, uint256 duration, uint256 volatility) public returns (uint256) {
-        // https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
-        // Note: only works well for short duration periods
-        // premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
-        return (uint256(4).mul(underlyingPrice).mul(volatility).mul(squareRoot(duration))).div(100);
-    }
-
     /// @dev Get the current price of the poolToken, denominated in the payment token
-    function getPoolTokenPrice(address poolToken, address paymentToken) public view returns (uint256) {
-        return priceOracle.price(poolToken);
-    }
-
-    /// @dev Compute the square root of a value
-    function squareRoot(uint256 value) internal pure returns (uint256) {
-        // https://ethereum.stackexchange.com/questions/2910/can-i-square-root-in-solidity
-        uint256 z = (value.add(1)).div(2);
-        uint256 y = value;
-        while (z < y) {
-            y = z;
-            uint256 fraction = value.div(z.add(z));
-            z = fraction.div(2);
-        }
-        return y;
+    function getPoolTokenPrice() public view returns (uint256) {
+        return priceOracle.price(address(pool.linkedToken()));
     }
 }
