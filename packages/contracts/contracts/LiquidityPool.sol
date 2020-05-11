@@ -57,7 +57,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * @param amount Number of ERC20 tokens to transfer to pool
      */
     function deposit(uint256 amount) public override {
-        require(amount != uint256(0), 'Pool/can not deposit 0');
+        require(amount != uint256(0), 'Pool: can not deposit 0');
 
         uint256 numLPTokensToMint;
         if (totalSupply() == 0) {
@@ -70,7 +70,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
 
         require(
             linkedToken.transferFrom(msg.sender, address(this), amount),
-            'Pool/insufficient user funds to deposit'
+            'Pool: insufficient user funds to deposit'
         );
 
         emit Deposit(msg.sender, address(this), amount);
@@ -81,7 +81,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * aTokens in return 
      */
     function transferToAave(uint256 transferAmount) public override onlyOwner {
-        require(aaveInitialised, "Pool/aave integration is not initialised");
+        require(aaveInitialised, "Pool: aave integration is not initialised");
         
         // TODO: investigate why this doesn't work for approvals set to transferAmount rather than a very large number
         linkedToken.approve(aaveProvider.getLendingPoolCore(), uint256(0x1f));        
@@ -94,21 +94,21 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * @param amount Number of ERC20 tokens to withdraw 
      */
     function withdraw(uint256 amount) public override {
-        require(amount != uint256(0), 'Pool/can not withdraw 0');
-        require(totalSupply() > uint256(0), 'Pool/no LP tokens minted');
+        require(amount != uint256(0), 'Pool: can not withdraw 0');
+        require(totalSupply() > uint256(0), 'Pool: no LP tokens minted');
 
         uint256 poolERC20Balance = getPoolERC20Balance();
-        require(amount <= poolERC20Balance, 'Pool/insufficient pool balance');
+        require(amount <= poolERC20Balance, 'Pool: insufficient pool balance');
 
         uint256 numLPTokensToBurn = (amount.mul(totalSupply())).div(getPoolERC20Balance());
         
-        require(balanceOf(msg.sender) != uint256(0), 'Pool/user has no LP tokens');
-        require(numLPTokensToBurn <= balanceOf(msg.sender), 'Pool/not enough LP tokens to burn');
+        require(balanceOf(msg.sender) != uint256(0), 'Pool: user has no LP tokens');
+        require(numLPTokensToBurn <= balanceOf(msg.sender), 'Pool: not enough LP tokens to burn');
         _burn(msg.sender, numLPTokensToBurn);
 
         require(
             linkedToken.transfer(msg.sender, amount),
-            'Pool/insufficient user funds to withdraw'
+            'Pool: insufficient user funds to withdraw'
         );
 
         emit Withdraw(msg.sender, address(this), amount);
@@ -119,7 +119,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * Protected by onlyOwner
      */
     function withdrawFromAave(uint256 redeemAmount) public override onlyOwner {
-        require(aaveInitialised, "Pool/aave integration is not initialised");
+        require(aaveInitialised, "Pool: aave integration is not initialised");
         aTokenInstance.redeem(redeemAmount);
         emit RedeemAave(owner(), redeemAmount);
     }
@@ -129,9 +129,9 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * Protected by onlyOwner
      */
     function transferATokens(uint256 amount, address recipient) public override onlyOwner {
-        require(aaveInitialised, "Pool/aave integration is not initialised");
-        require(recipient != address(0x0));
-        require(amount != uint256(0));
+        require(aaveInitialised, "Pool: aave integration is not initialised");
+        require(recipient != address(0x0), "Pool: transfer to the zero address");
+        require(amount != uint256(0), "Pool: zero value transfer");
 
         aTokenInstance.transfer(recipient, amount);
     }
@@ -147,7 +147,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * @dev Get the total number of aDAI tokens deposited into the liquidity pool
      */
     function getPoolATokenBalance() public view override returns (uint256) {
-        require(aaveInitialised, "Pool/aave integration is not initialised");
+        require(aaveInitialised, "Pool: aave integration is not initialised");
         return aTokenInstance.balanceOf(address(this));
     }
 
@@ -167,6 +167,6 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     function sendTokens(address recipient, uint256 transferAmount) external override onlyOwner {
         // TODO: unlock the same tokens
         // unlock(amount)
-        require(IERC20(linkedToken).transfer(recipient, transferAmount), "Transfer of pool tokens failed");
+        require(IERC20(linkedToken).transfer(recipient, transferAmount), "Pool: Transfer of pool tokens failed");
     }
 }
