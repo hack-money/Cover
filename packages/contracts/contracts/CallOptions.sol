@@ -49,7 +49,7 @@ contract CallOptions is Options {
         paymentToken.transfer(owner(), fee);
 
         // Lock the assets in the liquidity pool which this asset would be exercised against
-        // pool.lock(amount);
+        pool.lock(amount);
         optionID = options.length;
 
         // Exchange paymentTokens into poolTokens to be added to pool
@@ -73,7 +73,7 @@ contract CallOptions is Options {
         );
 
         exchangeTokens(option.strikeAmount, optionID);
-        // pool.sendTokens(option.holder, option.amount);
+        pool.sendTokens(option.holder, option.amount);
     }
 
     /// @dev Unlocks collateral for option being marked as expired

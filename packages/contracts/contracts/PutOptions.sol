@@ -60,7 +60,7 @@ contract PutOptions is Options {
       exchangeTokens(premium, optionID);
 
       // Lock the assets in the liquidity pool which this asset would be exercised against
-      // pool.lock(strikeAmount);
+      pool.lock(strikeAmount);
 
       // solium-disable-next-line security/no-block-members
       options.push(Option(State.Active, msg.sender, strikeAmount, amount, now + activationDelay, now + duration));

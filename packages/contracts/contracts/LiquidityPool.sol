@@ -20,6 +20,7 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     using SafeMath for uint256;
     
     IERC20 override public linkedToken;
+    uint256 override public lockedBalance;
 
     // Aave contracts
     ILendingPoolAddressesProvider aaveProvider;
@@ -32,6 +33,16 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     event Withdraw(address indexed user, address indexed liquidityPool, uint256 amount);
     event DepositAave(address indexed owner, uint256 transferAmount);
     event RedeemAave(address indexed owner, uint256 redeemAmount);
+
+    modifier sufficientUnlockedFunds(uint256 amount){
+        require(unlockedBalance() > amount, "Pool/ not enough unlocked funds");
+        _;
+    }
+
+    modifier sufficientLockedFunds(uint256 amount){
+        require(lockedBalance > amount, "Pool/ not enough unlocked funds");
+        _;
+    }
 
     constructor(IERC20 erc20) public ERC20('DAIPoolLP', 'DAILP') Ownable() {
         linkedToken = erc20;
@@ -93,8 +104,8 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
     * @dev Withdraw liquidity from the pool
     * @param amount Number of ERC20 tokens to withdraw 
      */
-    function withdraw(uint256 amount) public override {
-        require(amount != uint256(0), 'Pool/can not withdraw 0');
+    function withdraw(uint256 amount) public override sufficientUnlockedFunds(amount) {
+        require(amount > uint256(0), 'Pool/can not withdraw 0');
         require(totalSupply() > uint256(0), 'Pool/no LP tokens minted');
 
         uint256 poolERC20Balance = getPoolERC20Balance();
@@ -158,15 +169,40 @@ contract LiquidityPool is ILiquidityPool, ERC20, Ownable {
         return linkedToken.balanceOf(address(this));
     }
 
-    function lock(uint256 amount) external override onlyOwner {
+    /**
+    * @dev Get the total number of DAI tokens deposited into the liquidity pool
+     */
+    function unlockedBalance() public view override returns (uint256) {
+        return getPoolERC20Balance().sub(lockedBalance);
     }
 
-    function unlock(uint256 amount) external override onlyOwner {
+    /**
+    * @dev Lock a given number of tokens so they remain in the pool
+    * @param amount the number of tokens to be locked
+     */
+    function lock(uint256 amount) external override sufficientUnlockedFunds(amount) onlyOwner {
+        require(amount > 0, "Pool/can not lock 0 tokens");
+        require(unlockedBalance() > amount, "Pool/not enough unlocked funds");
+        lockedBalance += amount;
     }
 
-    function sendTokens(address recipient, uint256 transferAmount) external override onlyOwner {
-        // TODO: unlock the same tokens
-        // unlock(amount)
-        require(IERC20(linkedToken).transfer(recipient, transferAmount), "Transfer of pool tokens failed");
+    /**
+    * @dev Unlock a given number of tokens so they may be removed from the pool
+    * @param amount the number of tokens to be unlocked
+     */
+    function unlock(uint256 amount) external override sufficientLockedFunds(amount) onlyOwner {
+        require(amount > 0, "Pool/can not unlock 0 tokens");
+        require(lockedBalance > amount, "Pool/not enough locked funds");
+        lockedBalance -= amount;
+    }
+
+    /**
+    * @dev Transfers a number of tokens to a given address.
+    *      To be used on exercise of an option.
+    * @param recipient the address to which the tokens are to be sent
+    * @param transferAmount the number of tokens to be sent
+     */
+    function sendTokens(address recipient, uint256 transferAmount) external override sufficientUnlockedFunds(transferAmount) onlyOwner {
+        require(IERC20(linkedToken).transfer(recipient, transferAmount), "Pool/transfer of pool tokens failed");
     }
 }

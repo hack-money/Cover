@@ -23,6 +23,9 @@ interface ILiquidityPool {
 
     function sendTokens(address recipient, uint256 transferAmount) external;
 
+    function lockedBalance() external view returns (uint256);
+    function unlockedBalance() external view returns (uint256);
+
     function lock(uint256 amount) external;
 
     function unlock(uint256 amount) external;
