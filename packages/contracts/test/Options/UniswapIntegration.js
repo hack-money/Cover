@@ -5,7 +5,7 @@ const {
     createFixtureLoader,
 } = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
-const { generalTestFixture } = require('../shared/fixtures');
+const { generalTestFixture } = require('../helpers/fixtures');
 
 const CallOptions = require('../../build/CallOptions.json');
 const { VALID_DURATION } = require('../helpers/constants');

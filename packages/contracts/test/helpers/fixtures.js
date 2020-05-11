@@ -1,4 +1,5 @@
 const { Contract } = require('ethers');
+const { bigNumberify } = require('ethers/utils');
 const { deployContract } = require('ethereum-waffle');
 
 const UniswapV2Pair = require('@uniswap/v2-core/build/UniswapV2Pair.json');
@@ -10,9 +11,10 @@ const ERC20Mintable = require('../../build/ERC20Mintable.json');
 
 const CallOptions = require('../../build/CallOptions.json');
 const LiquidityPool = require('../../build/LiquidityPool.json');
-const { deployTestContract } = require('../helpers/deployTestContract');
 
-const { expandTo18Decimals } = require('./utilities');
+function expandTo18Decimals(n) {
+    return bigNumberify(n).mul(bigNumberify(10).pow(18));
+}
 
 const overrides = {
     gasLimit: 9999999,
@@ -108,10 +110,11 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     const poolToken = token0;
     const paymentToken = token1;
 
-    let optionsContract = await deployTestContract(
+    let optionsContract = await deployContract(
         liquidityProvider,
         CallOptions,
-        [poolToken.address, paymentToken.address]
+        [poolToken.address, paymentToken.address],
+        overrides
     );
     await optionsContract.setUniswapRouter(router.address);
 

@@ -14,7 +14,7 @@ const {
 } = require('../helpers/constants');
 
 const CallOptions = require('../../build/CallOptions.json');
-const { generalTestFixture } = require('../shared/fixtures');
+const { generalTestFixture } = require('../helpers/fixtures');
 
 const {
     contextForSpecificTime,
