@@ -40,6 +40,7 @@ abstract contract Options is IOptions, Ownable {
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
     
+    function _internalLock(Option memory option) internal virtual;
     function _internalUnlock(Option memory option) internal virtual;
     function _internalExercise(Option memory option, uint optionID) internal virtual;
 
@@ -78,6 +79,51 @@ abstract contract Options is IOptions, Ownable {
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public override pure returns (uint256) {
         return 0;
     }
+
+    /**
+      * @dev Create an option to buy pool tokens
+      *
+      * @param duration the period of time for which the option is valid
+      * @param amount [placeholder]
+      * @param strikePrice the strike price of the option to be created
+      * @return optionID A uint object representing the ID number of the created option.
+      */
+    function create(uint duration, uint amount, uint strikePrice) internal returns (uint optionID) {
+        uint256 fee = 0;
+        uint256 premium = 10;
+
+        uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
+
+        require(strikeAmount > 0,"Amount is too small");
+        require(fee < premium,  "Premium is too small");
+        require(duration >= minDuration, "Duration is too short");
+        require(duration <= maxDuration, "Duration is too long");
+
+        // Take ownership of paymentTokens to be paid into liquidity pool.
+        require(
+          paymentToken.transferFrom(msg.sender, address(this), premium),
+          "Insufficient funds"
+        );
+
+        // Transfer operator fee
+        paymentToken.transfer(owner(), fee);
+
+        // solium-disable-next-line security/no-block-members
+        Option memory newOption = Option(State.Active, msg.sender, strikeAmount, amount, now + activationDelay, now + duration);
+
+        optionID = options.length;
+        // Exchange paymentTokens into poolTokens to be added to pool
+        exchangeTokens(premium, optionID);
+
+        // Lock the assets in the liquidity pool which this asset would be exercised against
+        _internalLock(newOption);
+
+        options.push(newOption);
+
+        emit Create(optionID, msg.sender, fee, premium);
+        return optionID;
+    }
+
 
     /// @dev Exercise an option to claim the pool tokens
     /// @param optionID The ID number of the option which is to be exercised

@@ -21,48 +21,6 @@ contract CallOptions is Options {
       return create(duration, amount, 103000000);
     }
 
-    /**
-      * @dev Create an option to buy pool tokens
-      *
-      * @param duration the period of time for which the option is valid
-      * @param amount [placeholder]
-      * @param strikePrice the strike price of the option to be created
-      * @return optionID A uint object representing the ID number of the created option.
-      */
-    function create(uint duration, uint amount, uint strikePrice) internal returns (uint optionID) {
-        uint256 fee = 0;
-        uint256 premium = 10;
-
-        uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
-
-        require(strikeAmount > 0,"Amount is too small");
-        require(fee < premium,  "Premium is too small");
-        require(duration >= minDuration, "Duration is too short");
-        require(duration <= maxDuration, "Duration is too long");
-
-        // Take ownership of paymentTokens to be paid into liquidity pool.
-        require(
-          paymentToken.transferFrom(msg.sender, address(this), premium),
-          "Insufficient funds"
-        );
-
-        // Transfer operator fee
-        paymentToken.transfer(owner(), fee);
-
-        // Lock the assets in the liquidity pool which this asset would be exercised against
-        // pool.lock(amount);
-        optionID = options.length;
-
-        // Exchange paymentTokens into poolTokens to be added to pool
-        exchangeTokens(premium, optionID);
-
-        // solium-disable-next-line security/no-block-members
-        options.push(Option(State.Active, msg.sender, strikeAmount, amount, now + activationDelay, now + duration));
-
-        emit Create(optionID, msg.sender, fee, premium);
-        return optionID;
-    }
-
     /// @dev Exercise an option to claim the pool tokens
     /// @param option The option which is to be exercised
     function _internalExercise(Option memory option, uint optionID) internal override {
@@ -75,6 +33,12 @@ contract CallOptions is Options {
 
         exchangeTokens(option.strikeAmount, optionID);
         // pool.sendTokens(option.holder, option.amount);
+    }
+
+    /// @dev Lock the collateral for which a created option would be exercised against
+    /// @param option The option for which funds are to be locked.
+    function _internalLock(Option memory option) internal override {
+        pool.lock(option.amount);
     }
 
     /// @dev Unlocks collateral for option being marked as expired
