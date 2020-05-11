@@ -9,6 +9,7 @@ enum OptionType { Put, Call }
 
 struct Option {
   State state;
+  OptionType optionType;
   address holder;
   uint strikeAmount;
   uint amount;
