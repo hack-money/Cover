@@ -11,6 +11,7 @@ const ERC20Mintable = require('../../build/ERC20Mintable.json');
 
 const CallOptions = require('../../build/CallOptions.json');
 const LiquidityPool = require('../../build/LiquidityPool.json');
+const LiquidityPoolFactory = require('../../build/LiquidityPoolFactory.json');
 
 function expandTo18Decimals(n) {
     return bigNumberify(n).mul(bigNumberify(10).pow(18));
@@ -101,11 +102,26 @@ async function v2Fixture(provider, [wallet]) {
     };
 }
 
+async function liquidityPoolFactoryFixture(provider, [wallet]) {
+    const liquidityPoolFactory = await deployContract(
+        wallet,
+        LiquidityPoolFactory,
+        [],
+        overrides
+    );
+    return { liquidityPoolFactory };
+}
+
 // Fixture that sets up the option, liquidityPool and Uniswap V2
 async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     const { token0, token1, router, pair } = await v2Fixture(provider, [
         liquidityProvider,
     ]);
+
+    const { liquidityPoolFactory } = await liquidityPoolFactoryFixture(
+        provider,
+        [liquidityProvider]
+    );
 
     const poolToken = token0;
     const paymentToken = token1;
@@ -113,7 +129,7 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     let optionsContract = await deployContract(
         liquidityProvider,
         CallOptions,
-        [poolToken.address, paymentToken.address],
+        [poolToken.address, paymentToken.address, liquidityPoolFactory.address],
         overrides
     );
     await optionsContract.setUniswapRouter(router.address);

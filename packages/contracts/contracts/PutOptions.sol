@@ -1,6 +1,7 @@
 pragma solidity >=0.6.0 <0.7.0;
 
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import { ILiquidityPoolFactory } from './interfaces/ILiquidityPoolFactory.sol';
 
 import {Options} from "./Options.sol";
 import {State, Option, OptionType} from "./Types.sol";
@@ -12,8 +13,8 @@ import {State, Option, OptionType} from "./Types.sol";
  * Copyright 2020 Tom Waite, Tom French
  */
 contract PutOptions is Options {
-  constructor(IERC20 poolToken, IERC20 paymentToken)
-    Options(poolToken, paymentToken, OptionType.Put) public {}
+  constructor(IERC20 poolToken, IERC20 paymentToken, ILiquidityPoolFactory liquidityPoolFactory)
+    Options(poolToken, paymentToken, OptionType.Put, liquidityPoolFactory) public {}
 
 
   /**

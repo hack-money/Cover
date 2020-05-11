@@ -7,6 +7,8 @@ import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/I
 
 import { LiquidityPool } from './LiquidityPool.sol';
 import { ILiquidityPool } from './interfaces/ILiquidityPool.sol';
+import { ILiquidityPoolFactory } from './interfaces/ILiquidityPoolFactory.sol';
+
 
 import { IOptions } from './interfaces/IOptions.sol';
 
@@ -42,8 +44,8 @@ abstract contract Options is IOptions, Ownable {
     function _internalExercise(Option memory option, uint optionID) internal virtual;
 
     
-    constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t) public {
-        pool = new LiquidityPool(poolToken);
+    constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t, ILiquidityPoolFactory liquidityPoolFactory) public {
+        pool = liquidityPoolFactory.createPool(poolToken);
         paymentToken= _paymentToken;
         optionType = t;
 
