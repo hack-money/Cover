@@ -1,13 +1,14 @@
 pragma solidity >=0.6.0 <0.7.0;
 
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import { ILiquidityPoolFactory } from './interfaces/ILiquidityPoolFactory.sol';
 
 import {Options} from "./Options.sol";
 import {State, Option, OptionType} from "./Types.sol";
 
 contract CallOptions is Options {
-    constructor(IERC20 poolToken, IERC20 paymentToken)
-    Options(poolToken, paymentToken, OptionType.Call) public {}
+    constructor(IERC20 poolToken, IERC20 paymentToken, ILiquidityPoolFactory liquidityPoolFactory)
+    Options(poolToken, paymentToken, OptionType.Call, liquidityPoolFactory) public {}
 
     /**
       * @dev Create an option to buy pool tokens at the current price
