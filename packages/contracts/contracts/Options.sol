@@ -84,10 +84,10 @@ abstract contract Options is IOptions, Ownable {
     function exercise(uint optionID) public returns (uint256){
         Option storage option = options[optionID];
 
-        require(option.startTime <= now, 'Option has not been activated yet'); // solium-disable-line security/no-block-members
-        require(option.expirationTime >= now, 'Option has expired'); // solium-disable-line security/no-block-members
-        require(option.holder == msg.sender, "Wrong msg.sender");
-        require(option.state == State.Active, "Can't exercise inactive option");
+        require(option.startTime <= now, 'Options: Option has not been activated yet'); // solium-disable-line security/no-block-members
+        require(option.expirationTime >= now, 'Options: Option has expired'); // solium-disable-line security/no-block-members
+        require(option.holder == msg.sender, "Options: Wrong msg.sender");
+        require(option.state == State.Active, "Options: Can't exercise inactive option");
 
         option.state = State.Exercised;
 
@@ -115,8 +115,8 @@ abstract contract Options is IOptions, Ownable {
         Option storage option = options[optionID];
 
         // Ensure that option is eligible to be nullified
-        require(option.expirationTime < now, "Option has not expired yet");
-        require(option.state == State.Active, "Option is not active");
+        require(option.expirationTime < now, "Options: Option has not expired yet");
+        require(option.state == State.Active, "Options: Option is not active");
 
         option.state = State.Expired;
 
@@ -133,7 +133,7 @@ abstract contract Options is IOptions, Ownable {
     /// the option exercise to the exchange
     /// @return exchangedAmount The amount of pool tokens sent to the pool
     function exchangeTokens(uint inputAmount, uint optionId) internal returns (uint) {
-      require(inputAmount != uint(0), 'Options/ Swapping 0 tokens');
+      require(inputAmount != uint(0), 'Options: Swapping 0 tokens');
       paymentToken.approve(address(uniswapRouter), inputAmount);
 
       uint deadline = now + 2 minutes;
