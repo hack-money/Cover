@@ -23,14 +23,13 @@ import {Option, OptionType, State} from "./Types.sol";
  * @dev Base option contract
  * Copyright 2020 Tom Waite, Tom French
  */
-abstract contract Options is IOptions, Ownable, Pricing {
+contract Options is IOptions, Ownable, Pricing {
     using SafeMath for uint256;
 
     Option[] public options; // Array of all created options
     ILiquidityPool public override pool; // Liquidity pool of asset which options will be exercised against
     IERC20 public override paymentToken; // Token for which exercised options will pay in
-    IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
-    OptionType public override optionType; // Does this contract sell put or call options?
+    OptionType public optionType; // Does this contract sell put or call options?
 
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
     IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
@@ -49,9 +48,6 @@ abstract contract Options is IOptions, Ownable, Pricing {
     event SetUniswapOracle (address indexed uniswapOracle);
     event TokenPrice (address indexed token, uint256 price);
     
-    function _internalUnlock(Option memory option) internal virtual;
-    function _internalExercise(Option memory option, uint optionID) internal virtual;
-
     constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory) public {
         pool = liquidityPoolFactory.createPool(poolToken);
         paymentToken= _paymentToken;
@@ -103,11 +99,11 @@ abstract contract Options is IOptions, Ownable, Pricing {
       * @param amount Meaning differs based on whether option is call or put
                       Call: the amount of the pool asset which can be bought at strike price
                       Put: the amount of the payment asset which can be sold at strike price
-      * @param optionType OptionType enum describing whether the option is a call or put
+      * @param optionTypeInput OptionType enum describing whether the option is a call or put
       * @return optionID A uint object representing the ID number of the created option.
       */
-    function createATM(uint duration, uint amount, OptionType optionType) public override returns (uint optionID) {
-        return create(duration, amount, 103000000, optionType);
+    function createATM(uint duration, uint amount, OptionType optionTypeInput) public override returns (uint optionID) {
+        return create(duration, amount, 103000000, optionTypeInput);
     }
 
     /**
@@ -118,10 +114,10 @@ abstract contract Options is IOptions, Ownable, Pricing {
                       Call: the amount of the pool asset which can be bought at strike price
                       Put: the amount of the payment asset which can be sold at strike price
       * @param strikePrice the strike price of the option to be created
-      * @param optionType OptionType enum describing whether the option is a call or put
+      * @param optionTypeInput OptionType enum describing whether the option is a call or put
       * @return optionID A uint object representing the ID number of the created option.
       */
-    function create(uint duration, uint amount, uint strikePrice, OptionType optionType) public override returns (uint optionID) {
+    function create(uint duration, uint amount, uint strikePrice, OptionType optionTypeInput) public override returns (uint optionID) {
         uint256 fee = 0;
         uint256 premium = 10;
 
@@ -142,7 +138,7 @@ abstract contract Options is IOptions, Ownable, Pricing {
         paymentToken.transfer(owner(), fee);
 
         // solium-disable-next-line security/no-block-members
-        Option memory newOption = Option(State.Active, optionType, msg.sender, strikeAmount, amount, now + activationDelay, now + duration);
+        Option memory newOption = Option(State.Active, optionTypeInput, msg.sender, strikeAmount, amount, now + activationDelay, now + duration);
 
         optionID = options.length;
         // Exchange paymentTokens into poolTokens to be added to pool

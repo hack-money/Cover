@@ -6,7 +6,7 @@ const {
     createFixtureLoader,
 } = require('ethereum-waffle');
 
-const CallOptions = require('../../build/CallOptions.json');
+const Options = require('../../build/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 
@@ -14,7 +14,7 @@ use(solidity);
 
 const provider = new MockProvider({ gasLimit: 9999999 });
 const [liquidityProvider, optionsBuyer] = provider.getWallets();
-const OptionsInterface = new Interface(CallOptions.abi);
+const OptionsInterface = new Interface(Options.abi);
 
 const loadFixture = createFixtureLoader(provider, [
     liquidityProvider,
@@ -61,7 +61,7 @@ describe('Price oracle', async () => {
 
     describe('Oracle called through options contract', async () => {
         contextForOracleActivated(provider, () => {
-            it.only('should return correct price when calling Options.getPoolTokenPrice()', async () => {
+            it('should return correct price when calling Options.getPoolTokenPrice()', async () => {
                 const amount = 100;
                 const tx = await optionsContract.getPoolTokenPrice(amount);
                 const receipt = await tx.wait();
