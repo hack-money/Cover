@@ -3,7 +3,11 @@ const { bigNumberify } = require('ethers/utils');
 const moment = require('moment');
 const traveler = require('ether-time-traveler');
 
-const { MAX_DURATION, ACTIVATION_DELAY } = require('./constants');
+const {
+    MAX_DURATION,
+    ACTIVATION_DELAY,
+    ORACLE_ACTIVATION_DELAY,
+} = require('./constants');
 
 function contextForSpecificTime(
     contextText,
@@ -27,6 +31,18 @@ function contextForSpecificTime(
             await traveler.advanceBlockAndSetTime(provider, now.toNumber());
         });
     });
+}
+
+function contextForOracleActivated(provider, functions) {
+    const timeDuration = bigNumberify(
+        ORACLE_ACTIVATION_DELAY.clone().add({ minutes: 1 }).asSeconds()
+    );
+    contextForSpecificTime(
+        'when the Uniswap price oracle has activated',
+        timeDuration,
+        provider,
+        functions
+    );
 }
 
 function contextForOptionHasActivated(provider, functions) {
@@ -60,4 +76,5 @@ module.exports = {
     contextForSpecificTime,
     contextForOptionHasActivated,
     contextForOptionHasExpired,
+    contextForOracleActivated,
 };
