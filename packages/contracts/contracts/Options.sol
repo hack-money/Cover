@@ -47,6 +47,7 @@ abstract contract Options is IOptions, Ownable, Pricing {
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
     event SetUniswapOracle (address indexed uniswapOracle);
+    event TokenPrice (address indexed token, uint256 price);
     
     function _internalUnlock(Option memory option) internal virtual;
     function _internalExercise(Option memory option, uint optionID) internal virtual;
@@ -276,7 +277,10 @@ abstract contract Options is IOptions, Ownable, Pricing {
     /// @dev Get the current price of the poolToken
     function getPoolTokenPrice(uint256 amount) public returns (uint256) {
         uniswapOracle.update();
-        return uniswapOracle.consult(address(pool.linkedToken()), amount);
+        uint256 price = uniswapOracle.consult(address(pool.linkedToken()), amount);
+        
+        emit TokenPrice(address(pool.linkedToken()), price);
+        return price;
     }
 
     /**

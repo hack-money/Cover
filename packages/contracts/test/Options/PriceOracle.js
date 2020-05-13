@@ -1,10 +1,12 @@
 const { use, expect } = require('chai');
+const { Interface } = require('ethers/utils');
 const {
     solidity,
     MockProvider,
     createFixtureLoader,
 } = require('ethereum-waffle');
 
+const CallOptions = require('../../build/CallOptions.json');
 const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 
@@ -12,6 +14,7 @@ use(solidity);
 
 const provider = new MockProvider({ gasLimit: 9999999 });
 const [liquidityProvider, optionsBuyer] = provider.getWallets();
+const OptionsInterface = new Interface(CallOptions.abi);
 
 const loadFixture = createFixtureLoader(provider, [
     liquidityProvider,
@@ -58,10 +61,15 @@ describe('Price oracle', async () => {
 
     describe('Oracle called through options contract', async () => {
         contextForOracleActivated(provider, () => {
-            it('should return correct price when calling Options.getPoolTokenPrice()', async () => {
-                // TODO: make fn view to return price
+            it.only('should return correct price when calling Options.getPoolTokenPrice()', async () => {
                 const amount = 100;
-                const price = await optionsContract.getPoolTokenPrice(amount);
+                const tx = await optionsContract.getPoolTokenPrice(amount);
+                const receipt = await tx.wait();
+
+                const { price } = OptionsInterface.parseLog(
+                    receipt.logs[receipt.logs.length - 1]
+                ).values;
+
                 const oraclePrice = await oracle.consult(
                     poolToken.address,
                     amount
