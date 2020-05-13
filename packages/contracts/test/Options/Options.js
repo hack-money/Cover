@@ -13,7 +13,7 @@ const {
     ACTIVATION_DELAY,
 } = require('../helpers/constants');
 
-const CallOptions = require('../../build/CallOptions.json');
+const Options = require('../../build/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
 
 const {
@@ -24,7 +24,7 @@ const {
 
 use(solidity);
 
-describe('CallOptions functionality', async () => {
+describe('Options functionality', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;
@@ -34,7 +34,7 @@ describe('CallOptions functionality', async () => {
 
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
-    const OptionsInterface = new Interface(CallOptions.abi);
+    const OptionsInterface = new Interface(Options.abi);
 
     const loadFixture = createFixtureLoader(provider, [
         liquidityProvider,
@@ -69,13 +69,13 @@ describe('CallOptions functionality', async () => {
 
     describe('buyOption', () => {
         it('reject options resulting in zero payout to buyer', async () => {
-            await expect(optionsContract.create(0, 0)).to.be.revertedWith(
+            await expect(optionsContract.createATM(0, 0, 1)).to.be.revertedWith(
                 'Amount is too small'
             );
         });
 
         // it("reject options where liquidity pool doesn't receive assets", async () => {
-        //   await expect(optionsContract.create(86401, 1)).to.be.revertedWith('Premium is too small')
+        //   await expect(optionsContract.createATM(86401, 1, 1)).to.be.revertedWith('Premium is too small')
         // })
 
         it('reject options below minimum duration', async () => {
@@ -83,7 +83,7 @@ describe('CallOptions functionality', async () => {
                 seconds: 1,
             }).asSeconds();
             await expect(
-                optionsContract.create(invalidDuration, 1000)
+                optionsContract.createATM(invalidDuration, 1000, 1)
             ).to.be.revertedWith('Duration is too short');
         });
 
@@ -92,15 +92,16 @@ describe('CallOptions functionality', async () => {
                 seconds: 1,
             }).asSeconds();
             await expect(
-                optionsContract.create(invalidDuration, 1000)
+                optionsContract.createATM(invalidDuration, 1000, 1)
             ).to.be.revertedWith('Duration is too long');
         });
 
         it('stores a new option', async () => {
             const amount = 100;
-            const tx = await optionsContract.create(
+            const tx = await optionsContract.createATM(
                 VALID_DURATION.asSeconds(),
-                amount
+                amount,
+                1
             );
 
             // Extract optionID from emitted event.
@@ -127,7 +128,9 @@ describe('CallOptions functionality', async () => {
         });
 
         it('emits a Create event', async () => {
-            await expect(optionsContract.create(VALID_DURATION.asSeconds(), 20))
+            await expect(
+                optionsContract.createATM(VALID_DURATION.asSeconds(), 20, 1)
+            )
                 .to.emit(optionsContract, 'Create')
                 .withArgs(0, optionsBuyer.address, 0, 10);
         });
@@ -138,9 +141,10 @@ describe('CallOptions functionality', async () => {
 
         beforeEach(async () => {
             const amount = 100;
-            const tx = await optionsContract.create(
+            const tx = await optionsContract.createATM(
                 VALID_DURATION.asSeconds(),
-                amount
+                amount,
+                1
             );
             // Extract optionID from emitted event.
             const receipt = await tx.wait();
@@ -187,18 +191,20 @@ describe('CallOptions functionality', async () => {
             // console.log(optionsContract.interface.events.)
 
             // subtract mutates duration so we make a clone
-            const tx1 = await optionsContract.create(
+            const tx1 = await optionsContract.createATM(
                 VALID_DURATION.clone().subtract({ days: 2 }).asSeconds(),
-                amount
+                amount,
+                1
             );
             const receipt1 = await tx1.wait();
             optionID1 = OptionsInterface.parseLog(
                 receipt1.logs[receipt1.logs.length - 1]
             ).values.optionId;
 
-            const tx2 = await optionsContract.create(
+            const tx2 = await optionsContract.createATM(
                 VALID_DURATION.asSeconds(),
-                amount
+                amount,
+                1
             );
             const receipt2 = await tx2.wait();
             optionID2 = OptionsInterface.parseLog(

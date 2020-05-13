@@ -20,14 +20,13 @@ import {Option, OptionType, State} from "./Types.sol";
  * @dev Base option contract
  * Copyright 2020 Tom Waite, Tom French
  */
-abstract contract Options is IOptions, Ownable {
+contract Options is IOptions, Ownable {
     using SafeMath for uint256;
 
     Option[] public options; // Array of all created options
     ILiquidityPool public override pool; // Liquidity pool of asset which options will be exercised against
     IERC20 public override paymentToken; // Token for which exercised options will pay in
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
-    OptionType public override optionType; // Does this contract sell put or call options?
 
     uint constant priceDecimals = 1e8; // number of decimal places in strike price
     uint constant activationDelay = 15 minutes;
@@ -39,15 +38,10 @@ abstract contract Options is IOptions, Ownable {
     event Expire (uint indexed optionId);
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
-    
-    function _internalUnlock(Option memory option) internal virtual;
-    function _internalExercise(Option memory option, uint optionID) internal virtual;
 
-    
-    constructor(IERC20 poolToken, IERC20 _paymentToken, OptionType t, ILiquidityPoolFactory liquidityPoolFactory) public {
+    constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory) public {
         pool = liquidityPoolFactory.createPool(poolToken);
         paymentToken= _paymentToken;
-        optionType = t;
 
         initialiseUniswap();
     }
@@ -70,18 +64,79 @@ abstract contract Options is IOptions, Ownable {
         return options.length;
     }
 
-    function getOptionInfo(uint optionID) public override view returns (address, uint, uint, uint, uint) {
+    function getOptionInfo(uint optionID) public override view returns (address, OptionType, uint, uint, uint, uint) {
         Option memory option = options[optionID];
-        return (option.holder, option.strikeAmount, option.amount, option.startTime, option.expirationTime);
+        return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime);
     }
     
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public override pure returns (uint256) {
         return 0;
     }
 
+        /**
+      * @dev Create an option to buy pool tokens
+      *
+      * @param duration the period of time for which the option is valid
+      * @param amount Meaning differs based on whether option is call or put
+                      Call: the amount of the pool asset which can be bought at strike price
+                      Put: the amount of the payment asset which can be sold at strike price
+      * @param optionType OptionType enum describing whether the option is a call or put
+      * @return optionID A uint object representing the ID number of the created option.
+      */
+    function createATM(uint duration, uint amount, OptionType optionType) public override returns (uint optionID) {
+        return create(duration, amount, 103000000, optionType);
+    }
+
+    /**
+      * @dev Create an option to buy pool tokens
+      *
+      * @param duration the period of time for which the option is valid
+      * @param amount Meaning differs based on whether option is call or put
+                      Call: the amount of the pool asset which can be bought at strike price
+                      Put: the amount of the payment asset which can be sold at strike price
+      * @param strikePrice the strike price of the option to be created
+      * @param optionType OptionType enum describing whether the option is a call or put
+      * @return optionID A uint object representing the ID number of the created option.
+      */
+    function create(uint duration, uint amount, uint strikePrice, OptionType optionType) public override returns (uint optionID) {
+        uint256 fee = 0;
+        uint256 premium = 10;
+
+        uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
+
+        require(strikeAmount > 0,"Amount is too small");
+        require(fee < premium,  "Premium is too small");
+        require(duration >= minDuration, "Duration is too short");
+        require(duration <= maxDuration, "Duration is too long");
+
+        // Take ownership of paymentTokens to be paid into liquidity pool.
+        require(
+          paymentToken.transferFrom(msg.sender, address(this), premium),
+          "Insufficient funds"
+        );
+
+        // Transfer operator fee
+        paymentToken.transfer(owner(), fee);
+
+        // solium-disable-next-line security/no-block-members
+        Option memory newOption = Option(State.Active, optionType, msg.sender, strikeAmount, amount, now + activationDelay, now + duration);
+
+        optionID = options.length;
+        // Exchange paymentTokens into poolTokens to be added to pool
+        exchangeTokens(premium, optionID);
+
+        // Lock collateral which a created option would be exercised against
+        _internalLock(newOption);
+
+        options.push(newOption);
+
+        emit Create(optionID, msg.sender, fee, premium);
+        return optionID;
+    }
+
     /// @dev Exercise an option to claim the pool tokens
     /// @param optionID The ID number of the option which is to be exercised
-    function exercise(uint optionID) public returns (uint256){
+    function exercise(uint optionID) public override returns (uint256){
         Option storage option = options[optionID];
 
         require(option.startTime <= now, 'Options: Option has not been activated yet'); // solium-disable-line security/no-block-members
@@ -97,6 +152,31 @@ abstract contract Options is IOptions, Ownable {
         return option.amount;
     }
 
+    /// @dev Exercise an option to claim the pool tokens
+    /// @param option The option which is to be exercised
+    function _internalExercise(Option memory option, uint optionID) internal {
+        (uint256 payAmount, uint256 receiveAmount) = (option.optionType == OptionType.Call)
+            ? (option.strikeAmount, option.amount) : (option.amount, option.strikeAmount);
+
+        // Take ownership of paymentTokens to be paid into liquidity pool.
+        require(
+            paymentToken.transferFrom(option.holder, address(this), payAmount),
+            "Insufficient funds"
+        );
+
+        exchangeTokens(payAmount, optionID);
+        pool.sendTokens(option.holder, receiveAmount);
+    }
+
+    /// @dev Lock collateral which a created option would be exercised against
+    /// @param option The option for which funds are to be locked.
+    function _internalLock(Option memory option) internal {
+        if(option.optionType == OptionType.Call){
+            pool.lock(option.amount);
+        } else {
+            pool.lock(option.strikeAmount);
+        }
+    }
 
     /// @dev Unlocks collateral for an array of expired options.
     ///      This is done as they can no longer be exercised.
@@ -106,7 +186,6 @@ abstract contract Options is IOptions, Ownable {
             unlock(optionIDs[i]);
         }
     }
-
 
     /// @dev Unlocks collateral for an expired option.
     ///      This is done as it can no longer be exercised.
@@ -124,6 +203,16 @@ abstract contract Options is IOptions, Ownable {
         _internalUnlock(option);
 
         emit Expire(optionID);
+    }
+
+    /// @dev Unlock collateral which an option is being exercised against
+    /// @param option The option for which funds are to be unlocked.
+    function _internalUnlock(Option memory option) internal {
+        if(option.optionType == OptionType.Call){
+            pool.unlock(option.amount);
+        } else {
+            pool.unlock(option.strikeAmount);
+        }
     }
 
     /// @dev Exchange an amount of payment token into the pool token.

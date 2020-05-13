@@ -9,7 +9,7 @@ const UniswapV2Router01 = require('@uniswap/v2-periphery/build/UniswapV2Router01
 const WETH9 = require('@uniswap/v2-periphery/build/WETH9.json');
 const ERC20Mintable = require('../../build/ERC20Mintable.json');
 
-const CallOptions = require('../../build/CallOptions.json');
+const Options = require('../../build/Options.json');
 const LiquidityPool = require('../../build/LiquidityPool.json');
 const LiquidityPoolFactory = require('../../build/LiquidityPoolFactory.json');
 
@@ -128,7 +128,7 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
 
     let optionsContract = await deployContract(
         liquidityProvider,
-        CallOptions,
+        Options,
         [poolToken.address, paymentToken.address, liquidityPoolFactory.address],
         overrides
     );

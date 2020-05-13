@@ -17,15 +17,18 @@ interface IOptions {
 
     function setUniswapRouter(address _uniswapRouter) external;
 
-    function optionType() external view returns (OptionType);
-
-    function getOptionInfo(uint optionID) external view returns(address, uint, uint, uint, uint);
+    function getOptionInfo(uint optionID) external view returns(address, OptionType, uint, uint, uint, uint);
 
     event Create (uint indexed optionId, address indexed account, uint fee, uint premium);
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
     
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) external pure returns (uint256);
+
+    function createATM(uint duration, uint amount, OptionType optionType) external returns (uint optionID);
+    function create(uint duration, uint amount, uint strikePrice, OptionType optionType) external returns (uint optionID);
+
+    function exercise(uint optionID) external returns (uint256);
 
     function unlockMany(uint[] calldata optionIDs) external;
 

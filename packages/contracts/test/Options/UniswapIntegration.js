@@ -7,7 +7,7 @@ const {
 const { bigNumberify, Interface } = require('ethers/utils');
 const { generalTestFixture } = require('../helpers/fixtures');
 
-const CallOptions = require('../../build/CallOptions.json');
+const Options = require('../../build/Options.json');
 const { VALID_DURATION } = require('../helpers/constants');
 
 const { contextForOptionHasActivated } = require('../helpers/contexts');
@@ -60,7 +60,7 @@ describe('Uniswap integration', async () => {
 
             const initialPoolBalance = await liquidityPool.getPoolERC20Balance();
 
-            await expect(optionsContract.create(duration, optionValue))
+            await expect(optionsContract.createATM(duration, optionValue, 1))
                 .to.emit(optionsContract, 'Exchange')
                 .withArgs(
                     optionId,
@@ -79,13 +79,14 @@ describe('Uniswap integration', async () => {
     describe('exerciseOption', async () => {
         let optionID;
         let optionValue;
-        const OptionsInterface = new Interface(CallOptions.abi);
+        const OptionsInterface = new Interface(Options.abi);
 
         beforeEach(async () => {
             optionValue = 100;
-            const tx = await optionsContract.create(
+            const tx = await optionsContract.createATM(
                 VALID_DURATION.asSeconds(),
-                optionValue
+                optionValue,
+                1
             );
             // Extract optionID from emitted event.
             const receipt = await tx.wait();
@@ -96,9 +97,12 @@ describe('Uniswap integration', async () => {
 
         contextForOptionHasActivated(provider, function () {
             it('should exchange tokens when an option is exercised', async () => {
+                // Note: This test doesn't generalise to put options. See comment on last `expect`
                 const [
                     ,
+                    ,
                     strikeAmount,
+                    amount,
                     ,
                     ,
                 ] = await optionsContract.getOptionInfo(optionID);
@@ -118,7 +122,12 @@ describe('Uniswap integration', async () => {
                     .withArgs(optionID, optionValue);
 
                 const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
-                expect(finalPoolBalance).to.equal(initialPoolBalance.add(51));
+
+                // Note: finalPoolBalance = initialPoolBalance + uniswap output - funds released to option holder
+                // For call options this is option.amount but for put options this is option.strikeAmount
+                expect(finalPoolBalance).to.equal(
+                    initialPoolBalance.add(51).sub(amount)
+                );
             });
         });
     });
