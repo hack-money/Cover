@@ -3,12 +3,14 @@ pragma solidity >=0.6.0 <0.7.0;
 import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
 import { SafeMath } from '@openzeppelin/contracts/math/SafeMath.sol';
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
+import { ExampleOracleSimple } from '@uniswap/v2-periphery/contracts/examples/ExampleOracleSimple.sol';
 
 import { LiquidityPool } from './LiquidityPool.sol';
 import { ILiquidityPool } from './interfaces/ILiquidityPool.sol';
 import { ILiquidityPoolFactory } from './interfaces/ILiquidityPoolFactory.sol';
-
+import { IUniswapOracle } from './interfaces/IUniswapOracle.sol';
 
 import { IOptions } from './interfaces/IOptions.sol';
 import { Pricing } from './library/Pricing.sol';
@@ -28,6 +30,10 @@ abstract contract Options is IOptions, Ownable, Pricing {
     ILiquidityPool public override pool; // Liquidity pool of asset which options will be exercised against
     IERC20 public override paymentToken; // Token for which exercised options will pay in
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
+    OptionType public override optionType; // Does this contract sell put or call options?
+
+    IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
+    IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
 
     uint constant priceDecimals = 1e8; // number of decimal places in strike price
     uint constant activationDelay = 15 minutes;
@@ -40,6 +46,10 @@ abstract contract Options is IOptions, Ownable, Pricing {
     event Expire (uint indexed optionId);
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
+    event SetUniswapOracle (address indexed uniswapOracle);
+    
+    function _internalUnlock(Option memory option) internal virtual;
+    function _internalExercise(Option memory option, uint optionID) internal virtual;
 
     constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory) public {
         pool = liquidityPoolFactory.createPool(poolToken);
@@ -51,11 +61,21 @@ abstract contract Options is IOptions, Ownable, Pricing {
     function initialiseUniswap() internal {
         // ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
+
+        // TODO: deploy and get address
+        uniswapOracle = IUniswapOracle(0x01);
     }
 
     function setUniswapRouter(address _uniswapRouter) public override onlyOwner {
+        require(_uniswapRouter != address(0x0), 'Options: ZERO_ADDRESS');
         uniswapRouter = IUniswapV2Router01(_uniswapRouter);
-        emit SetUniswapRouter(_uniswapRouter);
+        emit SetUniswapRouter(address(uniswapRouter));
+    }
+
+    function setUniswapOracle(address _uniswapOracle) public onlyOwner {
+        require(_uniswapOracle != address(0x0), 'Options: ZERO_ADDRESS');
+        uniswapOracle = IUniswapOracle(_uniswapOracle);
+        emit SetUniswapOracle(address(uniswapOracle));
     }
 
     function poolToken() public override view returns (IERC20) {
@@ -246,17 +266,17 @@ abstract contract Options is IOptions, Ownable, Pricing {
     /// @param amount [placeholder]
     /// @param strikePrice Price at which the asset can be exercised
     /// @param putOption Bool determining whether the option is a put (true) or a call (false)
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public view override returns (uint256, uint256) {
-        uint256 platformFee = calculatePlatformFee(amount); // fee in terms of number of DAI
-        uint256 underlyingPrice = getPoolTokenPrice(); // use an oracle
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public override returns (uint256, uint256) {
+        uint256 platformFee = calculatePlatformFee(amount);
+        uint256 underlyingPrice = getPoolTokenPrice(amount);
         uint256 premium = calculatePremium(strikePrice, amount, duration, underlyingPrice, volatility, putOption);
         return (platformFee, premium);
     }
 
-    /// @dev Get the current price of the poolToken, denominated in the payment token
-    function getPoolTokenPrice() public view returns (uint256) {
-        // return priceOracle.price(address(pool.linkedToken()));
-        return 5;
+    /// @dev Get the current price of the poolToken
+    function getPoolTokenPrice(uint256 amount) public returns (uint256) {
+        uniswapOracle.update();
+        return uniswapOracle.consult(address(pool.linkedToken()), amount);
     }
 
     /**

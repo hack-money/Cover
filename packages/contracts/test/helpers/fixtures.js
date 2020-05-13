@@ -150,9 +150,6 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     );
     await optionsContract.setUniswapRouter(router.address);
 
-    // liquidityProvider no longer interacts with options contract
-    optionsContract = optionsContract.connect(optionsBuyer);
-
     const liquidityPoolAddress = await optionsContract.pool();
     const liquidityPool = new Contract(
         liquidityPoolAddress,
@@ -174,6 +171,10 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
         [factory.address, poolToken.address, paymentToken.address],
         overrides
     );
+    await optionsContract.setUniswapOracle(oracle.address);
+
+    // liquidityProvider no longer interacts with options contract
+    optionsContract = optionsContract.connect(optionsBuyer);
 
     return {
         liquidityPool,
