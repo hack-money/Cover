@@ -2,7 +2,7 @@ pragma solidity >=0.6.0 <0.7.0;
 
 import { SafeMath } from '@openzeppelin/contracts/math/SafeMath.sol';
 
-library Pricing {
+contract Pricing {
     using SafeMath for uint256;
     using SafeMath for uint;
     

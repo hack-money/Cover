@@ -5,6 +5,7 @@ const UniswapV2Pair = require('@uniswap/v2-core/build/UniswapV2Pair.json');
 const IUniswapV2Pair = require('@uniswap/v2-core/build/IUniswapV2Pair.json');
 const UniswapV2Factory = require('@uniswap/v2-core/build/UniswapV2Factory.json');
 const UniswapV2Router01 = require('@uniswap/v2-periphery/build/UniswapV2Router01.json');
+const UniswapV2Oracle = require('@uniswap/v2-periphery/build/ExampleOracleSimple.json');
 const WETH9 = require('@uniswap/v2-periphery/build/WETH9.json');
 const ERC20Mintable = require('../../build/ERC20Mintable.json');
 
@@ -128,9 +129,10 @@ async function optionFactoryFixture(provider, [wallet]) {
 
 // Fixture that sets up the option, liquidityPool and Uniswap V2
 async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
-    const { token0, token1, router, pair } = await v2Fixture(provider, [
-        liquidityProvider,
-    ]);
+    const { token0, token1, router, pair, factory } = await v2Fixture(
+        provider,
+        [liquidityProvider]
+    );
 
     const { liquidityPoolFactory } = await liquidityPoolFactoryFixture(
         provider,
@@ -166,11 +168,19 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     await paymentToken.transfer(pair.address, token1Amount);
     await pair.mint(liquidityProvider.address);
 
+    const oracle = await deployContract(
+        liquidityProvider,
+        UniswapV2Oracle,
+        [factory.address, poolToken.address, paymentToken.address],
+        overrides
+    );
+
     return {
         liquidityPool,
         optionsContract,
         poolToken,
         paymentToken,
+        oracle,
     };
 }
 

@@ -21,7 +21,7 @@ import {Option, OptionType, State} from "./Types.sol";
  * @dev Base option contract
  * Copyright 2020 Tom Waite, Tom French
  */
-contract Options is IOptions, Ownable {
+abstract contract Options is IOptions, Ownable, Pricing {
     using SafeMath for uint256;
 
     Option[] public options; // Array of all created options
@@ -71,7 +71,7 @@ contract Options is IOptions, Ownable {
         return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime);
     }
     
-    function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public override pure returns (uint256) {
+    function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public pure returns (uint256) {
         return 0;
     }
 
@@ -247,9 +247,9 @@ contract Options is IOptions, Ownable {
     /// @param strikePrice Price at which the asset can be exercised
     /// @param putOption Bool determining whether the option is a put (true) or a call (false)
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public view override returns (uint256, uint256) {
-        uint256 platformFee = Pricing.calculatePlatformFee(amount); // fee in terms of number of DAI
+        uint256 platformFee = calculatePlatformFee(amount); // fee in terms of number of DAI
         uint256 underlyingPrice = getPoolTokenPrice(); // use an oracle
-        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, underlyingPrice, volatility, putOption);
+        uint256 premium = calculatePremium(strikePrice, amount, duration, underlyingPrice, volatility, putOption);
         return (platformFee, premium);
     }
 
