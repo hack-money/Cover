@@ -30,7 +30,7 @@ contract Pricing is Ownable {
     * @param currentPrice - price of the underlying asset 
     * @param duration - time period of the option (days)
     * @param volatility - measure of the volatility of the underlying asset (?)
-    * @return time value of the option
+    * @return Time value of the option, number divided by price decimals
      */
     function calculateTimeValue(uint256 amount, uint256 currentPrice, uint256 duration, uint256 volatility) public pure returns (uint256) {
         
@@ -45,12 +45,12 @@ contract Pricing is Ownable {
         *
          */
         uint256 timeValuePerAmount = (uint256(4).mul(currentPrice).mul(volatility).mul(squareRoot(duration))).div(10).div(100);
-        return timeValuePerAmount.mul(amount);
+        return timeValuePerAmount.mul(amount).div(priceDecimals);
     }
 
     /**
     * @dev Calculate the total intrinsic value of the option
-    * @return Total intrinsic value of whole option amount
+    * @return Total intrinsic value of whole option amount. Number divided by priceDecimals
      */
     function calculateIntrinsicValue(uint256 strikePrice, uint256 amount, uint256 currentPrice, bool putOption) public pure returns (uint256) {
          // intrinsic value per unit, multiplied by number of units

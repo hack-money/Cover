@@ -5,15 +5,18 @@ const Pricing = require('../../build/Pricing.json');
 
 use(solidity);
 
-function blackScholesApprox(currentPrice, duration, volatility) {
-    return 0.4 * currentPrice * Math.sqrt(duration) * (volatility / 100);
+const priceDecimals = 1e8;
+
+function extrinsicValue(amount, currentPrice, duration, volatility) {
+    const valuePerAmount =
+        0.4 * currentPrice * Math.sqrt(duration) * (volatility / 100);
+    return (valuePerAmount * amount) / priceDecimals;
 }
 
 describe.only('Pricing', async () => {
     let pricingContract;
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet] = provider.getWallets();
-    const priceDecimals = 1e8;
 
     beforeEach(async () => {
         pricingContract = await deployContract(wallet, Pricing);
@@ -107,7 +110,8 @@ describe.only('Pricing', async () => {
             const duration = 16;
             const volatility = 5;
 
-            const timeValue = blackScholesApprox(
+            const timeValue = extrinsicValue(
+                amount,
                 currentPrice,
                 duration,
                 volatility
@@ -118,31 +122,30 @@ describe.only('Pricing', async () => {
                 duration,
                 volatility
             );
-            expect(result).to.equal(timeValue / priceDecimals);
+
+            expect(result).to.equal(timeValue);
         });
     });
 
-    describe.skip('Premium', async () => {
+    describe('Premium', async () => {
         it('should calculate premium of an option', async () => {
             // Scenario: Out of the money PUT option
             const putOption = true;
-            const strikePrice = 200;
-            const amount = 100;
-            const currentPrice = 180;
+            const strikePrice = 180 * priceDecimals;
+            const amount = 100 * priceDecimals;
+            const currentPrice = 200 * priceDecimals;
             const duration = 16;
-            const volatility = 5;
+            const volatility = 6;
+            const intrinsicValue = 0;
 
-            const intrinsicValue = (strikePrice - currentPrice) * amount;
-            console.log({ intrinsicValue });
-            const timeValue = blackScholesApprox(
+            const timeValue = extrinsicValue(
+                amount,
                 currentPrice,
                 duration,
                 volatility
             );
-            console.log({ timeValue });
 
             const premium = intrinsicValue + timeValue;
-            console.log({ premium });
             const result = await pricingContract.calculatePremium(
                 strikePrice,
                 amount,
@@ -151,7 +154,6 @@ describe.only('Pricing', async () => {
                 volatility,
                 putOption
             );
-            console.log({ result });
 
             expect(result).to.equal(premium);
         });
