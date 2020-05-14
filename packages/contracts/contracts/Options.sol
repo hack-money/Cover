@@ -34,7 +34,6 @@ contract Options is IOptions, Ownable, Pricing {
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
     IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
 
-    uint constant priceDecimals = 1e8; // number of decimal places in strike price
     uint constant activationDelay = 15 minutes;
     uint256 constant minDuration = 1 days;
     uint256 constant maxDuration = 8 weeks;
@@ -59,7 +58,8 @@ contract Options is IOptions, Ownable, Pricing {
         // ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
 
-        // TODO: deploy and get address
+        // TODO: deploy and get address. Oracle has to have been setup and established for a 
+        // particular token pair e.g. DAI:USDC
         uniswapOracle = IUniswapOracle(0x01);
     }
 
@@ -109,11 +109,11 @@ contract Options is IOptions, Ownable, Pricing {
     /**
       * @dev Create an option to buy pool tokens
       *
-      * @param duration the period of time for which the option is valid
+      * @param duration the period of time for which the option is valid (days)
       * @param amount Meaning differs based on whether option is call or put
                       Call: the amount of the pool asset which can be bought at strike price
-                      Put: the amount of the payment asset which can be sold at strike price
-      * @param strikePrice the strike price of the option to be created
+                      Put: the amount of the payment asset which can be sold at strike price (1e18 asset)
+      * @param strikePrice the strike price of the option to be created ()
       * @param optionTypeInput OptionType enum describing whether the option is a call or put
       * @return optionID A uint object representing the ID number of the created option.
       */
@@ -264,9 +264,10 @@ contract Options is IOptions, Ownable, Pricing {
     /// @param strikePrice Price at which the asset can be exercised
     /// @param putOption Bool determining whether the option is a put (true) or a call (false)
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public override returns (uint256, uint256) {
-        uint256 platformFee = calculatePlatformFee(amount);
-        uint256 underlyingPrice = getPoolTokenPrice(amount);
-        uint256 premium = calculatePremium(strikePrice, amount, duration, underlyingPrice, volatility, putOption);
+        uint256 currentPrice = getPoolTokenPrice(amount);
+
+        uint256 platformFee = calculatePlatformFee(amount).mul(currentPrice);
+        uint256 premium = calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), putOption);
         return (platformFee, premium);
     }
 

@@ -5,146 +5,154 @@ const Pricing = require('../../build/Pricing.json');
 
 use(solidity);
 
-function blackScholesApprox(underlyingPrice, duration, volatility) {
-    return 0.4 * underlyingPrice * Math.sqrt(duration) * (volatility / 100);
+function blackScholesApprox(currentPrice, duration, volatility) {
+    return 0.4 * currentPrice * Math.sqrt(duration) * (volatility / 100);
 }
 
-describe('Pricing', async () => {
-    let pricingLibrary;
+describe.only('Pricing', async () => {
+    let pricingContract;
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet] = provider.getWallets();
+    const priceDecimals = 1e8;
 
     beforeEach(async () => {
-        pricingLibrary = await deployContract(wallet, Pricing);
+        pricingContract = await deployContract(wallet, Pricing);
     });
 
     it('should calculate square root of a value', async () => {
         const value = 9;
         const sqrtRoot = Math.sqrt(value);
 
-        const result = await pricingLibrary.squareRoot(value);
+        const result = await pricingContract.squareRoot(value);
         expect(result).to.equal(sqrtRoot);
     });
 
     it('should calculate platform fee', async () => {
         const amount = 500;
-        const fee = amount / 100; // 1% fee
-        const result = await pricingLibrary.calculatePlatformFee(amount);
+        const fee = amount / 100; // 1% fee set in contract
+        const result = await pricingContract.calculatePlatformFee(amount);
         expect(result).to.equal(fee);
     });
 
     describe('Intrinsic value', async () => {
         it('should calculate intrinsic value of an out of the money PUT option', async () => {
-            const strikePrice = 200;
+            const strikePrice = 200 * priceDecimals;
             const amount = 3;
-            const underlyingPrice = 250;
+            const currentPrice = 250 * priceDecimals;
             const putOption = true;
             const intrinsicValue = 0; // 0 was the intrinsic value would be negative
 
-            const result = await pricingLibrary.calculateIntrinsicValue(
+            const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                underlyingPrice,
+                currentPrice,
                 putOption
             );
-            expect(result).to.equal(intrinsicValue);
+            expect(result).to.equal(intrinsicValue / priceDecimals);
         });
 
         it('should calculate intrinsic value of an in the money PUT option', async () => {
-            const strikePrice = 200;
+            const strikePrice = 200 * priceDecimals;
             const amount = 3;
-            const underlyingPrice = 180;
+            const currentPrice = 180 * priceDecimals;
             const putOption = true;
-            const intrinsicValue = (strikePrice - underlyingPrice) * amount; // 0 was the intrinsic value would be negative
+            const intrinsicValue = (strikePrice - currentPrice) * amount; // 0 was the intrinsic value would be negative
 
-            const result = await pricingLibrary.calculateIntrinsicValue(
+            const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                underlyingPrice,
+                currentPrice,
                 putOption
             );
-            expect(result).to.equal(intrinsicValue);
+            expect(result).to.equal(intrinsicValue / priceDecimals);
         });
 
         it('should calculate intrinsic value of an out of the money CALL option', async () => {
-            const strikePrice = 200;
+            const strikePrice = 200 * priceDecimals;
             const amount = 3;
-            const underlyingPrice = 180;
+            const currentPrice = 180 * priceDecimals;
             const putOption = false;
             const intrinsicValue = 0; // 0 was the intrinsic value would be negative
 
-            const result = await pricingLibrary.calculateIntrinsicValue(
+            const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                underlyingPrice,
+                currentPrice,
                 putOption
             );
-            expect(result).to.equal(intrinsicValue);
+            expect(result).to.equal(intrinsicValue / priceDecimals);
         });
 
         it('should calculate intrinsic value of an in the money CALL option', async () => {
-            const strikePrice = 200;
+            const strikePrice = 200 * priceDecimals;
             const amount = 3;
-            const underlyingPrice = 220;
+            const currentPrice = 220 * priceDecimals;
             const putOption = false;
-            const intrinsicValue = (underlyingPrice - strikePrice) * amount; // 0 was the intrinsic value would be negative
+            const intrinsicValue = (currentPrice - strikePrice) * amount; // 0 was the intrinsic value would be negative
 
-            const result = await pricingLibrary.calculateIntrinsicValue(
+            const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                underlyingPrice,
+                currentPrice,
                 putOption
             );
-            expect(result).to.equal(intrinsicValue);
+            expect(result).to.equal(intrinsicValue / priceDecimals);
         });
     });
 
     describe('Time value', async () => {
         it('should calculate time value of an option', async () => {
-            const underlyingPrice = 200;
+            const amount = 500;
+            const currentPrice = 200 * priceDecimals;
             const duration = 16;
             const volatility = 5;
 
             const timeValue = blackScholesApprox(
-                underlyingPrice,
+                currentPrice,
                 duration,
                 volatility
             );
-            const result = await pricingLibrary.calculateTimeValue(
-                underlyingPrice,
+            const result = await pricingContract.calculateTimeValue(
+                amount,
+                currentPrice,
                 duration,
                 volatility
             );
-            expect(result).to.equal(timeValue);
+            expect(result).to.equal(timeValue / priceDecimals);
         });
     });
 
-    describe('Premium', async () => {
+    describe.skip('Premium', async () => {
         it('should calculate premium of an option', async () => {
-            // Scenario: In the money PUT option
+            // Scenario: Out of the money PUT option
             const putOption = true;
             const strikePrice = 200;
             const amount = 100;
-            const underlyingPrice = 180;
+            const currentPrice = 180;
             const duration = 16;
             const volatility = 5;
 
-            const intrinsicValue = (strikePrice - underlyingPrice) * amount;
+            const intrinsicValue = (strikePrice - currentPrice) * amount;
+            console.log({ intrinsicValue });
             const timeValue = blackScholesApprox(
-                underlyingPrice,
+                currentPrice,
                 duration,
                 volatility
             );
+            console.log({ timeValue });
 
             const premium = intrinsicValue + timeValue;
-            const result = await pricingLibrary.calculatePremium(
+            console.log({ premium });
+            const result = await pricingContract.calculatePremium(
                 strikePrice,
                 amount,
                 duration,
-                underlyingPrice,
+                currentPrice,
                 volatility,
                 putOption
             );
+            console.log({ result });
+
             expect(result).to.equal(premium);
         });
     });
