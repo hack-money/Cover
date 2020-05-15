@@ -21,7 +21,7 @@ const loadFixture = createFixtureLoader(provider, [
     optionsBuyer,
 ]);
 
-describe('Price oracle', async () => {
+describe('Uniswap Price oracle', async () => {
     let oracle;
     let paymentToken;
     let poolToken;
@@ -70,11 +70,12 @@ describe('Price oracle', async () => {
                     receipt.logs[receipt.logs.length - 1]
                 ).values;
 
-                const oraclePrice = await oracle.consult(
+                const amountPoolTokenOut = await oracle.consult(
                     poolToken.address,
                     amount
                 );
-                expect(price).to.equal(oraclePrice);
+                const poolTokenPrice = amountPoolTokenOut / amount;
+                expect(price).to.equal(poolTokenPrice);
             });
         });
     });

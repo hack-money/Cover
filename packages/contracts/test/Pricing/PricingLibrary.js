@@ -2,18 +2,13 @@ const { use, expect } = require('chai');
 const { deployContract, solidity, MockProvider } = require('ethereum-waffle');
 
 const Pricing = require('../../build/Pricing.json');
+const { calculateExtrinsicValue } = require('./helpers');
 
 use(solidity);
 
 const priceDecimals = 1e8;
 
-function extrinsicValue(amount, currentPrice, duration, volatility) {
-    const valuePerAmount =
-        0.4 * currentPrice * Math.sqrt(duration) * (volatility / 100);
-    return (valuePerAmount * amount) / priceDecimals;
-}
-
-describe.only('Pricing', async () => {
+describe('Pricing utilities', async () => {
     let pricingContract;
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet] = provider.getWallets();
@@ -99,6 +94,8 @@ describe.only('Pricing', async () => {
                 currentPrice,
                 putOption
             );
+            console.log({ result });
+            console.log({ intrinsicValue });
             expect(result).to.equal(intrinsicValue / priceDecimals);
         });
     });
@@ -110,7 +107,7 @@ describe.only('Pricing', async () => {
             const duration = 16;
             const volatility = 5;
 
-            const timeValue = extrinsicValue(
+            const timeValue = calculateExtrinsicValue(
                 amount,
                 currentPrice,
                 duration,
@@ -138,11 +135,12 @@ describe.only('Pricing', async () => {
             const volatility = 6;
             const intrinsicValue = 0;
 
-            const timeValue = extrinsicValue(
+            const timeValue = calculateExtrinsicValue(
                 amount,
                 currentPrice,
                 duration,
-                volatility
+                volatility,
+                priceDecimals
             );
 
             const premium = intrinsicValue + timeValue;

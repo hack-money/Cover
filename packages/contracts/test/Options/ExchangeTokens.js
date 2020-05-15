@@ -105,6 +105,7 @@ describe('Exchange token, via Uniswap', async () => {
                     amount,
                     ,
                     ,
+                    ,
                 ] = await optionsContract.getOptionInfo(optionID);
 
                 const initialPoolBalance = await liquidityPool.getPoolERC20Balance();
