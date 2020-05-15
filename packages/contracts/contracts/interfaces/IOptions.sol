@@ -17,7 +17,7 @@ interface IOptions {
 
     function setUniswapRouter(address _uniswapRouter) external;
 
-    function getOptionInfo(uint optionID) external view returns(address, OptionType, uint, uint, uint, uint);
+    function getOptionInfo(uint optionID) external view returns(address, OptionType, uint, uint, uint, uint, uint);
 
     event Create (uint indexed optionId, address indexed account, uint fee, uint premium);
     event Exercise (uint indexed optionId, uint exchangeAmount);

@@ -83,9 +83,9 @@ contract Options is IOptions, Ownable, Pricing {
         return options.length;
     }
 
-    function getOptionInfo(uint optionID) public override view returns (address, OptionType, uint, uint, uint, uint) {
+    function getOptionInfo(uint optionID) public override view returns (address, OptionType, uint, uint, uint, uint, uint) {
         Option memory option = options[optionID];
-        return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime);
+        return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime, option.premium);
     }
     
     function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public pure returns (uint256) {
@@ -138,7 +138,7 @@ contract Options is IOptions, Ownable, Pricing {
         paymentToken.transfer(owner(), fee);
 
         // solium-disable-next-line security/no-block-members
-        Option memory newOption = Option(State.Active, optionTypeInput, msg.sender, strikeAmount, amount, now + activationDelay, now + duration);
+        Option memory newOption = Option(State.Active, optionTypeInput, msg.sender, strikeAmount, amount, now + activationDelay, now + duration, premium);
 
         optionID = options.length;
         // Exchange paymentTokens into poolTokens to be added to pool
@@ -258,26 +258,41 @@ contract Options is IOptions, Ownable, Pricing {
       return exchangeAmount[1];
     }
     
-    /// @dev Calculate the fees associated with an option purchase
-    /// @param duration Time period until the option expires 
-    /// @param amount [placeholder]
-    /// @param strikePrice Price at which the asset can be exercised
-    /// @param putOption Bool determining whether the option is a put (true) or a call (false)
+    /**
+    * @dev Calculate the fees associated with an option purchase
+    * @param duration Time period until the option expires 
+    * @param amount Meaning differs based on whether option is call or put
+                      Call: the amount of the pool asset which can be bought at strike price
+                      Put: the amount of the payment asset which can be sold at strike price
+    * @param strikePrice Price at which the asset can be exercised
+    * @param putOption Bool determining whether the option is a put (true) or a call (false)
+    */
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public override returns (uint256, uint256) {
+        // Pool token price in terms of payment token, e.g. 1 DAI = currentPrice USDC
         uint256 currentPrice = getPoolTokenPrice(amount);
-
         uint256 platformFee = calculatePlatformFee(amount).mul(currentPrice);
         uint256 premium = calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), putOption);
         return (platformFee, premium);
     }
 
-    /// @dev Get the current price of the poolToken
+    /**
+    * @dev Get the current price of the poolToken - DAI.
+    * @param amount Number of pool tokens user is purchasing a right over
+    * @return Number of paymentTokens that would be exchanged if the trade between
+    * amount of tokenA, for tokenB were to go ahead
+    **/
     function getPoolTokenPrice(uint256 amount) public returns (uint256) {
+        // update the uniswap oracle with latest prices
         uniswapOracle.update();
-        uint256 price = uniswapOracle.consult(address(pool.linkedToken()), amount);
+
+        // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
+        uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
         
-        emit TokenPrice(address(pool.linkedToken()), price);
-        return price;
+        // DAI price in terms of USDC
+        uint256 poolTokenPrice = amountPoolTokenOut.div(amount);
+        
+        emit TokenPrice(address(pool.linkedToken()), poolTokenPrice);
+        return poolTokenPrice;
     }
 
     /**
