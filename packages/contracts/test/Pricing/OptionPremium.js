@@ -6,7 +6,6 @@ const {
     createFixtureLoader,
 } = require('ethereum-waffle');
 
-const { VALID_DURATION } = require('../helpers/constants');
 
 const Options = require('../../build/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
@@ -24,15 +23,15 @@ const loadFixture = createFixtureLoader(provider, [
     optionsBuyer,
 ]);
 
-describe.only('Option premium', async () => {
+describe('Option premium', async () => {
     let oracle;
     let paymentToken;
     let poolToken;
     let optionsContract;
     let liquidityPool;
 
-    const numPoolTokens = 2000;
-    const numPaymentTokens = 2000;
+    const numPoolTokens = 2e12;
+    const numPaymentTokens = 2e12;
     const priceDecimals = 1e8;
 
     beforeEach(async () => {
@@ -57,45 +56,52 @@ describe.only('Option premium', async () => {
             .approve(optionsContract.address, numPaymentTokens);
     });
 
-    it('should store a created option with the correct premium', async () => {
-        // setup
-        const amount = 100;
-        const putOption = true;
-        const strikePrice = 200 * priceDecimals;
-        const duration = VALID_DURATION.asSeconds();
-        const volatility = 10;
+    contextForOracleActivated(provider, () => {
+        it.only('should create in the money PUT option with correct premium', async () => {
+            // Scenario - in the money PUT option
+            const amount = 100e2;
+            const optionType = 1; // putOption
+            const strikePrice = 250 * priceDecimals;
+            const duration = 86400; // 1 day ( = 60 * 60 * 24 seconds)
+            const volatility = await optionsContract.getVolatility();
 
-        const amountPoolTokenOut = await oracle.consult(
-            poolToken.address,
-            amount
-        );
-        const currentPrice = amountPoolTokenOut / amount;
+            await oracle.update();
+            const amountPoolTokenOut = await oracle.consult(
+                poolToken.address,
+                amount
+            );
+            const currentPrice = (amountPoolTokenOut / amount) * priceDecimals;
 
-        // create the option - TODO
-        const tx = await optionsContract.create(
-            duration,
-            amount,
-            strikePrice,
-            putOption
-        );
+            // calculate expected premium offchain
+            const expectedPremium = calcPremiumOffChain(
+                amount,
+                currentPrice,
+                strikePrice,
+                duration,
+                volatility,
+                priceDecimals,
+                optionType
+            );
 
-        const receipt = await tx.wait();
-        const optionID = OptionsInterface.parseLog(
-            receipt.logs[receipt.logs.length - 1]
-        ).values.optionId;
-        const { premium } = await optionsContract.options(optionID);
-        console.log({ premium });
+            // fast forward time by 24hrs. Note: this will represent a problem, as update called
+            // everytime option created. Automate the calling of update() for once every 24hrs
+            // in the contracts
+            const tx = await optionsContract.create(
+                duration,
+                amount,
+                strikePrice,
+                1
+            );
 
-        // calculate expected premium offchain
-        const expectedPremium = calcPremiumOffChain(
-            amount,
-            currentPrice,
-            strikePrice,
-            duration,
-            volatility,
-            priceDecimals,
-            putOption
-        );
-        expect(premium).to.equal(expectedPremium);
+            const receipt = await tx.wait();
+            const optionID = OptionsInterface.parseLog(
+                receipt.logs[receipt.logs.length - 1]
+            ).values.optionId;
+            const { premium } = await optionsContract.options(optionID);
+
+            expect(parseFloat(premium.toNumber().toPrecision(4))).to.equal(
+                parseFloat(expectedPremium.toPrecision(4))
+            );
+        });
     });
 });

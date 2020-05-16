@@ -113,13 +113,14 @@ contract Options is IOptions, Ownable, Pricing {
       * @param amount Meaning differs based on whether option is call or put
                       Call: the amount of the pool asset which can be bought at strike price
                       Put: the amount of the payment asset which can be sold at strike price (1e18 asset)
-      * @param strikePrice the strike price of the option to be created ()
+      * @param strikePrice the strike price of the option to be created (priceDecimals)
       * @param optionTypeInput OptionType enum describing whether the option is a call or put
       * @return optionID A uint object representing the ID number of the created option.
       */
     function create(uint duration, uint amount, uint strikePrice, OptionType optionTypeInput) public override returns (uint optionID) {
-        uint256 fee = 0;
-        uint256 premium = 10;
+        // TODO: premium and fee need to be in same units to be comparable
+        uint256 fee = 1;
+        (, uint256 premium) = calculateFees(duration, amount, strikePrice, optionTypeInput);
 
         uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
 
@@ -142,7 +143,7 @@ contract Options is IOptions, Ownable, Pricing {
 
         optionID = options.length;
         // Exchange paymentTokens into poolTokens to be added to pool
-        exchangeTokens(premium, optionID);
+        // exchangeTokens(premium, optionID);
 
         // Lock collateral which a created option would be exercised against
         _internalLock(newOption);
@@ -264,14 +265,16 @@ contract Options is IOptions, Ownable, Pricing {
     * @param amount Meaning differs based on whether option is call or put
                       Call: the amount of the pool asset which can be bought at strike price
                       Put: the amount of the payment asset which can be sold at strike price
-    * @param strikePrice Price at which the asset can be exercised
-    * @param putOption Bool determining whether the option is a put (true) or a call (false)
+    * @param strikePrice Price at which the asset can be exercised (priceDecimals)
+    * @param optionTypeInput Bool determining whether the option is a put (true) or a call (false)
     */
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) public override returns (uint256, uint256) {
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType optionTypeInput) public override returns (uint256, uint256) {
         // Pool token price in terms of payment token, e.g. 1 DAI = currentPrice USDC
         uint256 currentPrice = getPoolTokenPrice(amount);
+
+        currentPrice = currentPrice.mul(priceDecimals);
         uint256 platformFee = calculatePlatformFee(amount).mul(currentPrice);
-        uint256 premium = calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), putOption);
+        uint256 premium = calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), int(optionTypeInput));
         return (platformFee, premium);
     }
 
@@ -282,9 +285,7 @@ contract Options is IOptions, Ownable, Pricing {
     * amount of tokenA, for tokenB were to go ahead
     **/
     function getPoolTokenPrice(uint256 amount) public returns (uint256) {
-        // update the uniswap oracle with latest prices
-        uniswapOracle.update();
-
+        // TODO: automate the calling of oracle.update() every 24hrs
         // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
         uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
         
