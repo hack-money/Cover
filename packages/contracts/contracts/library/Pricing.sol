@@ -54,7 +54,7 @@ library Pricing {
         uint256 volatility
     ) public pure returns (uint256) {
         /**
-        * https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
+        * Source: https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
         * Assumptions: `short` duration periods, constant volatility of underlying asset, option close to the money
         * premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
 
@@ -84,7 +84,7 @@ library Pricing {
         // intrinsic value per unit, multiplied by number of units
         if (putOption == 1) {
             if (strikePrice < currentPrice) {
-                return 0; // if intrinsicValue is negative, return 0
+                return 0;
             } else {
                 return
                     (strikePrice.sub(currentPrice)).mul(amount)
@@ -94,7 +94,7 @@ library Pricing {
 
         if (putOption == 0) {
             if (currentPrice < strikePrice) {
-                return 0; // if intrinsicValue is negative, return 0
+                return 0;
             } else {
                 return
                     (currentPrice.sub(strikePrice)).mul(amount); // intrinsicValue = (currentPrice - strikePrice) * amount
@@ -102,7 +102,6 @@ library Pricing {
         }
     }
 
-    // TODO: factor in current price into this, only returns amount in terms of the amount of option
     /**
      * @dev Compute platform fee for providing the option. Calculated as 1% of the
      * amount for which an option is purchased
@@ -118,13 +117,15 @@ library Pricing {
 
     /**
      * @dev Compute the square root of a value. Uses the Babylonian method of calculating a square root
+     * 
+     * Sources: 1) https://ethereum.stackexchange.com/questions/2910/can-i-square-root-in-solidity
+     *          2) https://github.com/ethereum/dapp-bin/pull/50
+     *
      * @param value - Value to be square rooted
      * @return square rooted value
+
      */
     function squareRoot(uint256 value) public pure returns (uint256) {
-        // Sources: 1) https://ethereum.stackexchange.com/questions/2910/can-i-square-root-in-solidity
-        // 2) https://github.com/ethereum/dapp-bin/pull/50
-
         require(value != uint256(0), 'Pricing: can not sqrt 0');
 
         if (value > 3) {

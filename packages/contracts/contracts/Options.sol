@@ -118,7 +118,6 @@ contract Options is IOptions, Ownable {
       * @return optionID A uint object representing the ID number of the created option.
       */
     function create(uint duration, uint amount, uint strikePrice, OptionType optionTypeInput) public override returns (uint optionID) {
-        // TODO: premium and fee need to be in same units to be comparable
         (uint256 fee, uint256 premium) = calculateFees(duration, amount, strikePrice, optionTypeInput);
 
         uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
@@ -142,7 +141,7 @@ contract Options is IOptions, Ownable {
 
         optionID = options.length;
         // Exchange paymentTokens into poolTokens to be added to pool
-        // exchangeTokens(premium, optionID);
+        exchangeTokens(premium, optionID);
 
         // Lock collateral which a created option would be exercised against
         _internalLock(newOption);
@@ -298,18 +297,17 @@ contract Options is IOptions, Ownable {
 
     /**
     * @dev Get the volatility of the underlying asset.
-    * Currently hard coded to Bitmex's EVOL7D index - %6 - TODO: dynamically update
+    * Currently hard coded to Bitmex's EVOL7D index. TODO: dynamically update if possible
     * Note: Represents volatility as a % - need to account for in subsequent arithmetic
     */
-    function getVolatility() public view returns (uint256) {
+    function getVolatility() public override view returns (uint256) {
         return volatility;
     }
 
     /**
     * @dev Set the volatility of the option underlying asset 
-    * TODO: dynamically update/set this
     */
-    function setVolatility(uint256 _volatility) public onlyOwner {
+    function setVolatility(uint256 _volatility) public override onlyOwner {
         volatility = _volatility;
     }
 
@@ -318,9 +316,9 @@ contract Options is IOptions, Ownable {
      */
     function setPlatformPercentageFee(uint256 _platformPercentageFee)
         public
+        override
         onlyOwner
     {
-        // prevent platformPercentageFee being set > 100%
         require(_platformPercentageFee <= 100, 'Options: PLATFORM_FEE_TOO_HIGH');
         platformPercentageFee = _platformPercentageFee;
     }

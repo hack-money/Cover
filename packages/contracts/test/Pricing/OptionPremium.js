@@ -6,7 +6,6 @@ const {
     createFixtureLoader,
 } = require('ethereum-waffle');
 
-
 const Options = require('../../build/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
@@ -57,7 +56,7 @@ describe('Option premium', async () => {
     });
 
     contextForOracleActivated(provider, () => {
-        it.only('should create in the money PUT option with correct premium', async () => {
+        it('should create in the money PUT option with correct premium', async () => {
             // Scenario - in the money PUT option
             const amount = 100e2;
             const optionType = 1; // putOption
