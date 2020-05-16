@@ -67,30 +67,89 @@ contract Options is IOptions, Ownable {
         uniswapOracle = IUniswapOracle(0x01);
     }
 
+    /////////////////// GETTERS AND SETTERS ///////////////////
+
+    /**
+    * @dev Get the volatility of the underlying asset.
+    * Currently hard coded to Bitmex's EVOL7D index. TODO: dynamically update if possible
+    * Note: Represents volatility as a % - need to account for in subsequent arithmetic
+    * @return volatility - volatility of option underlying asset
+    */
+    function getVolatility() public override view returns (uint256) {
+        return volatility;
+    }
+
+    /**
+    * @dev Get the number of options created using this contract
+    * @return Number of options created
+     */
+    function getOptionsCount() public view returns (uint) {
+        return options.length;
+    }
+
+    /**
+    * @dev Get all information about a particular option, specified by the optionID, including: holder, optionType
+    * strikeAmount, amount, startTime, expirationTime and premium paid
+    * @param optionID - unique identifier for a particular option created
+    * @return Specific option information: holder, optionType, strikeAmount, amount, startTime, expirationTime and premium paid
+     */
+    function getOptionInfo(uint optionID) public override view returns (address, OptionType, uint, uint, uint, uint, uint) {
+        Option memory option = options[optionID];
+        return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime, option.premium);
+    }
+
+    /**
+    * @dev Get information about the ERC20 token linked to the Pool
+    * @return Information about the pool's linked token
+     */
+    function poolToken() public override view returns (IERC20) {
+        return pool.linkedToken();
+    }
+
+
+    /**
+    * @dev Set the address of the Uniswap router contract. Protected by onlyOwner
+    * @param _uniswapRouter - address of the uniswap router contract
+     */
     function setUniswapRouter(address _uniswapRouter) public override onlyOwner {
         require(_uniswapRouter != address(0x0), 'Options: ZERO_ADDRESS');
         uniswapRouter = IUniswapV2Router01(_uniswapRouter);
         emit SetUniswapRouter(address(uniswapRouter));
     }
 
+    /**
+    * @dev Set the address of the Uniswap price oracle contract. Protected by onlyOwner
+    * @param _uniswapOracle - address of the uniswap price oracle contract
+     */
     function setUniswapOracle(address _uniswapOracle) public onlyOwner {
         require(_uniswapOracle != address(0x0), 'Options: ZERO_ADDRESS');
         uniswapOracle = IUniswapOracle(_uniswapOracle);
         emit SetUniswapOracle(address(uniswapOracle));
     }
 
-    function poolToken() public override view returns (IERC20) {
-        return pool.linkedToken();
+    /**
+    * @dev Set the volatility of the option underlying asset. Protected by onlyOwner
+    * @param _volatility - set the volatility of the underling option asset
+    */
+    function setVolatility(uint256 _volatility) public override onlyOwner {
+        volatility = _volatility;
     }
 
-    function getOptionsCount() public view returns(uint) {
-        return options.length;
+    /**
+    * @dev Set platform fee percentage. Protected by onlyOwner
+    * @param _platformPercentageFee - percentage fee taken as a platform fee
+     */
+    function setPlatformPercentageFee(uint256 _platformPercentageFee)
+        public
+        override
+        onlyOwner
+    {
+        require(_platformPercentageFee <= 100, 'Options: PLATFORM_FEE_TOO_HIGH');
+        platformPercentageFee = _platformPercentageFee;
     }
 
-    function getOptionInfo(uint optionID) public override view returns (address, OptionType, uint, uint, uint, uint, uint) {
-        Option memory option = options[optionID];
-        return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime, option.premium);
-    }
+
+    /////////////  EFFECTS AND INTERACTIONS ///////////////
     
     /**
       * @dev Create an option to buy pool tokens
@@ -152,8 +211,11 @@ contract Options is IOptions, Ownable {
         return optionID;
     }
 
-    /// @dev Exercise an option to claim the pool tokens
-    /// @param optionID The ID number of the option which is to be exercised
+    /**
+    * @dev Exercise an option to claim the pool tokens
+    * @param optionID The ID number of the option which is to be exercised
+    * @return Amount exercised
+     */
     function exercise(uint optionID) public override returns (uint256){
         Option storage option = options[optionID];
 
@@ -169,9 +231,11 @@ contract Options is IOptions, Ownable {
         emit Exercise(optionID, option.amount);
         return option.amount;
     }
-
-    /// @dev Exercise an option to claim the pool tokens
-    /// @param option The option which is to be exercised
+    /**
+    * @dev Internal option exercise method
+    * @param option The option which is to be exercised
+    * @param optionID Unique identifier of a particular option
+     */ 
     function _internalExercise(Option memory option, uint optionID) internal {
         (uint256 payAmount, uint256 receiveAmount) = (option.optionType == OptionType.Call)
             ? (option.strikeAmount, option.amount) : (option.amount, option.strikeAmount);
@@ -185,9 +249,11 @@ contract Options is IOptions, Ownable {
         exchangeTokens(payAmount, optionID);
         pool.sendTokens(option.holder, receiveAmount);
     }
-
-    /// @dev Lock collateral which a created option would be exercised against
-    /// @param option The option for which funds are to be locked.
+    
+    /**
+    * @dev Lock collateral which a created option would be exercised against
+    * @param option The option for which funds are to be locked.
+    */
     function _internalLock(Option memory option) internal {
         if(option.optionType == OptionType.Call){
             pool.lock(option.amount);
@@ -196,18 +262,22 @@ contract Options is IOptions, Ownable {
         }
     }
 
-    /// @dev Unlocks collateral for an array of expired options.
-    ///      This is done as they can no longer be exercised.
-    /// @param optionIDs An array of IDs for expired options
+    /**
+    * @dev Unlocks collateral for an array of expired options.
+    *      This is done as they can no longer be exercised.
+    * @param optionIDs An array of IDs for expired options
+    */
     function unlockMany(uint[] memory optionIDs) public override {
         for(uint i; i < optionIDs.length; i++) {
             unlock(optionIDs[i]);
         }
     }
 
-    /// @dev Unlocks collateral for an expired option.
-    ///      This is done as it can no longer be exercised.
-    /// @param optionID The id number of the expired option.
+    /**
+    * @dev Unlocks collateral for an expired option.
+    *      This is done as it can no longer be exercised.
+    * @param optionID The id number of the expired option.
+    */
     function unlock(uint optionID) public override {
         Option storage option = options[optionID];
 
@@ -223,8 +293,10 @@ contract Options is IOptions, Ownable {
         emit Expire(optionID);
     }
 
-    /// @dev Unlock collateral which an option is being exercised against
-    /// @param option The option for which funds are to be unlocked.
+    /** 
+    * @dev Unlock collateral which an option is being exercised against
+    * @param option The option for which funds are to be unlocked.
+    */
     function _internalUnlock(Option memory option) internal {
         if(option.optionType == OptionType.Call){
             pool.unlock(option.amount);
@@ -233,13 +305,14 @@ contract Options is IOptions, Ownable {
         }
     }
 
-
-    /// @dev Exchange an amount of payment token into the pool token.
-    ///      The pool tokens are then sent to the liquidity pool.
-    /// @param inputAmount The amount of payment token to be exchanged
-    /// @param optionId - unique option identifier, for use in emitting an event and linking
-    /// the option exercise to the exchange
-    /// @return exchangedAmount The amount of pool tokens sent to the pool
+    /**
+    * @dev Exchange an amount of payment token into the pool token.
+    *      The pool tokens are then sent to the liquidity pool.
+    * @param inputAmount The amount of payment token to be exchanged
+    * @param optionId - unique option identifier, for use in emitting an event and linking
+    * the option exercise to the exchange
+    * @return exchangedAmount The amount of pool tokens sent to the pool
+    */
     function exchangeTokens(uint inputAmount, uint optionId) internal returns (uint) {
       require(inputAmount != uint(0), 'Options: Swapping 0 tokens');
       paymentToken.approve(address(uniswapRouter), inputAmount);
@@ -293,33 +366,5 @@ contract Options is IOptions, Ownable {
         
         emit TokenPrice(address(pool.linkedToken()), poolTokenPrice);
         return poolTokenPrice;
-    }
-
-    /**
-    * @dev Get the volatility of the underlying asset.
-    * Currently hard coded to Bitmex's EVOL7D index. TODO: dynamically update if possible
-    * Note: Represents volatility as a % - need to account for in subsequent arithmetic
-    */
-    function getVolatility() public override view returns (uint256) {
-        return volatility;
-    }
-
-    /**
-    * @dev Set the volatility of the option underlying asset 
-    */
-    function setVolatility(uint256 _volatility) public override onlyOwner {
-        volatility = _volatility;
-    }
-
-    /**
-    * @dev Set platform fee percentage. Protected by onlyOwner
-     */
-    function setPlatformPercentageFee(uint256 _platformPercentageFee)
-        public
-        override
-        onlyOwner
-    {
-        require(_platformPercentageFee <= 100, 'Options: PLATFORM_FEE_TOO_HIGH');
-        platformPercentageFee = _platformPercentageFee;
     }
 }
