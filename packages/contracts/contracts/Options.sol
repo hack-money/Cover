@@ -23,13 +23,17 @@ import {Option, OptionType, State} from "./Types.sol";
  * @dev Base option contract
  * Copyright 2020 Tom Waite, Tom French
  */
-contract Options is IOptions, Ownable, Pricing {
+contract Options is IOptions, Ownable {
     using SafeMath for uint256;
 
     Option[] public options; // Array of all created options
     ILiquidityPool public override pool; // Liquidity pool of asset which options will be exercised against
     IERC20 public override paymentToken; // Token for which exercised options will pay in
     OptionType public optionType; // Does this contract sell put or call options?
+    
+    uint256 constant priceDecimals = 1e8; // number of decimal places in strike price
+    uint256 public platformPercentageFee = 1;
+
 
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
     IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
@@ -88,11 +92,7 @@ contract Options is IOptions, Ownable, Pricing {
         return (option.holder, option.optionType, option.strikeAmount, option.amount, option.startTime, option.expirationTime, option.premium);
     }
     
-    function fees(/*uint256 duration, uint256 amount, uint256 strikePrice*/) public pure returns (uint256) {
-        return 0;
-    }
-
-        /**
+    /**
       * @dev Create an option to buy pool tokens
       *
       * @param duration the period of time for which the option is valid
@@ -119,8 +119,7 @@ contract Options is IOptions, Ownable, Pricing {
       */
     function create(uint duration, uint amount, uint strikePrice, OptionType optionTypeInput) public override returns (uint optionID) {
         // TODO: premium and fee need to be in same units to be comparable
-        uint256 fee = 1;
-        (, uint256 premium) = calculateFees(duration, amount, strikePrice, optionTypeInput);
+        (uint256 fee, uint256 premium) = calculateFees(duration, amount, strikePrice, optionTypeInput);
 
         uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
 
@@ -267,14 +266,15 @@ contract Options is IOptions, Ownable, Pricing {
                       Put: the amount of the payment asset which can be sold at strike price
     * @param strikePrice Price at which the asset can be exercised (priceDecimals)
     * @param optionTypeInput Bool determining whether the option is a put (true) or a call (false)
+    * @return platformFee and premium - not multiplied by priceDecimals
     */
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType optionTypeInput) public override returns (uint256, uint256) {
         // Pool token price in terms of payment token, e.g. 1 DAI = currentPrice USDC
         uint256 currentPrice = getPoolTokenPrice(amount);
 
         currentPrice = currentPrice.mul(priceDecimals);
-        uint256 platformFee = calculatePlatformFee(amount).mul(currentPrice);
-        uint256 premium = calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), int(optionTypeInput));
+        uint256 platformFee = (Pricing.calculatePlatformFee(amount, platformPercentageFee)).mul(currentPrice).div(priceDecimals);
+        uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), int(optionTypeInput), priceDecimals);
         return (platformFee, premium);
     }
 
@@ -311,5 +311,17 @@ contract Options is IOptions, Ownable, Pricing {
     */
     function setVolatility(uint256 _volatility) public onlyOwner {
         volatility = _volatility;
+    }
+
+    /**
+    * @dev Set platform fee percentage. Protected by onlyOwner
+     */
+    function setPlatformPercentageFee(uint256 _platformPercentageFee)
+        public
+        onlyOwner
+    {
+        // prevent platformPercentageFee being set > 100%
+        require(_platformPercentageFee <= 100, 'Options: PLATFORM_FEE_TOO_HIGH');
+        platformPercentageFee = _platformPercentageFee;
     }
 }

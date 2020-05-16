@@ -1,5 +1,6 @@
 const { Contract } = require('ethers');
-const { deployContract } = require('ethereum-waffle');
+const { bigNumberify } = require('ethers/utils');
+const { deployContract, link } = require('ethereum-waffle');
 
 const UniswapV2Pair = require('@uniswap/v2-core/build/UniswapV2Pair.json');
 const IUniswapV2Pair = require('@uniswap/v2-core/build/IUniswapV2Pair.json');
@@ -14,6 +15,7 @@ const OptionsFactory = require('../../build/OptionsFactory.json');
 
 const LiquidityPool = require('../../build/LiquidityPool.json');
 const LiquidityPoolFactory = require('../../build/LiquidityPoolFactory.json');
+const PricingLibrary = require('../../build/Pricing.json');
 
 const { expandTo18Decimals } = require('./utilities');
 
@@ -141,6 +143,18 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
 
     const poolToken = token0;
     const paymentToken = token1;
+
+    const pricingLibrary = await deployContract(
+        liquidityProvider,
+        PricingLibrary,
+        []
+    );
+
+    link(
+        Options,
+        'contracts/library/Pricing.sol:Pricing',
+        pricingLibrary.address
+    );
 
     let optionsContract = await deployContract(
         liquidityProvider,

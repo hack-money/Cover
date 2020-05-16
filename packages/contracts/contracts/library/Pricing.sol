@@ -1,13 +1,8 @@
 pragma solidity >=0.6.0 <0.7.0;
 
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-
-contract Pricing is Ownable {
-    uint256 public platformPercentageFee = 1;
-    uint256 constant priceDecimals = 1e8; // number of decimal places in strike price
-
+library Pricing {
     using SafeMath for uint256;
 
     /**
@@ -26,7 +21,8 @@ contract Pricing is Ownable {
         uint256 duration,
         uint256 currentPrice,
         uint256 volatility,
-        int256 putOption
+        int256 putOption,
+        uint256 priceDecimals
     ) public pure returns (uint256) {
         uint256 intrinsicValue = calculateIntrinsicValue(
             strikePrice,
@@ -40,7 +36,7 @@ contract Pricing is Ownable {
             duration,
             volatility
         );
-        return intrinsicValue.add(extrinsicValue);
+        return intrinsicValue.add(extrinsicValue).div(priceDecimals);
     }
 
     /**
@@ -72,7 +68,7 @@ contract Pricing is Ownable {
             .mul(volatility)
             .mul(squareRoot(duration))
             .mul(amount);
-        return resultOfMuls.div(10).div(100).div(priceDecimals);
+        return resultOfMuls.div(10).div(100);
     }
 
     /**
@@ -91,9 +87,8 @@ contract Pricing is Ownable {
                 return 0; // if intrinsicValue is negative, return 0
             } else {
                 return
-                    (strikePrice.sub(currentPrice)).mul(amount).div(
-                        priceDecimals
-                    ); // intrinsicValue = (strikePrice - currentPrice) * amount
+                    (strikePrice.sub(currentPrice)).mul(amount)
+                    ; // intrinsicValue = (strikePrice - currentPrice) * amount
             }
         }
 
@@ -102,9 +97,7 @@ contract Pricing is Ownable {
                 return 0; // if intrinsicValue is negative, return 0
             } else {
                 return
-                    (currentPrice.sub(strikePrice)).mul(amount).div(
-                        priceDecimals
-                    ); // intrinsicValue = (currentPrice - strikePrice) * amount
+                    (currentPrice.sub(strikePrice)).mul(amount); // intrinsicValue = (currentPrice - strikePrice) * amount
             }
         }
     }
@@ -115,19 +108,12 @@ contract Pricing is Ownable {
      * amount for which an option is purchased
      * @param amount quantity of asset for which option is being purchased
      */
-    function calculatePlatformFee(uint256 amount)
+    function calculatePlatformFee(uint256 amount, uint256 platformPercentageFee)
         public
-        view
+        pure
         returns (uint256)
     {
         return (amount.mul(platformPercentageFee)).div(100);
-    }
-
-    function setPlatformPercentageFee(uint256 _platformPercentageFee)
-        public
-        onlyOwner
-    {
-        platformPercentageFee = _platformPercentageFee;
     }
 
     /**

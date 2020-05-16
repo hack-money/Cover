@@ -27,8 +27,12 @@ describe('Pricing utilities', async () => {
 
     it('should calculate platform fee', async () => {
         const amount = 500;
-        const fee = amount / 100; // 1% fee set in contract
-        const result = await pricingContract.calculatePlatformFee(amount);
+        const platformFeePercentage = 1;
+        const fee = amount * (platformFeePercentage / 100); // 1% fee set in contract
+        const result = await pricingContract.calculatePlatformFee(
+            amount,
+            platformFeePercentage
+        );
         expect(result).to.equal(fee);
     });
 
@@ -46,7 +50,7 @@ describe('Pricing utilities', async () => {
                 currentPrice,
                 optionType
             );
-            expect(result).to.equal(intrinsicValue / priceDecimals);
+            expect(result).to.equal(intrinsicValue);
         });
 
         it('should calculate intrinsic value of an in the money PUT option', async () => {
@@ -62,7 +66,7 @@ describe('Pricing utilities', async () => {
                 currentPrice,
                 optionType
             );
-            expect(result).to.equal(intrinsicValue / priceDecimals);
+            expect(result).to.equal(intrinsicValue);
         });
 
         it('should calculate intrinsic value of an out of the money CALL option', async () => {
@@ -78,7 +82,7 @@ describe('Pricing utilities', async () => {
                 currentPrice,
                 optionType
             );
-            expect(result).to.equal(intrinsicValue / priceDecimals);
+            expect(result).to.equal(intrinsicValue);
         });
 
         it('should calculate intrinsic value of an in the money CALL option', async () => {
@@ -94,12 +98,12 @@ describe('Pricing utilities', async () => {
                 currentPrice,
                 optionType
             );
-            expect(result).to.equal(intrinsicValue / priceDecimals);
+            expect(result).to.equal(intrinsicValue);
         });
     });
 
-    describe('Time value', async () => {
-        it('should calculate time value of an option', async () => {
+    describe('Extrinsic value', async () => {
+        it('should calculate extrinsic value of an option', async () => {
             const amount = 500;
             const currentPrice = 200 * priceDecimals;
             const duration = 16;
@@ -119,7 +123,7 @@ describe('Pricing utilities', async () => {
                 volatility
             );
 
-            expect(result).to.equal(extrinsicValue);
+            expect(result).to.equal(extrinsicValue * priceDecimals);
         });
     });
 
@@ -148,7 +152,8 @@ describe('Pricing utilities', async () => {
                 duration,
                 currentPrice,
                 volatility,
-                optionType
+                optionType,
+                priceDecimals
             );
 
             expect(result).to.equal(expectedPremium);
@@ -179,7 +184,8 @@ describe('Pricing utilities', async () => {
                 duration,
                 currentPrice,
                 volatility,
-                optionType
+                optionType,
+                priceDecimals
             );
 
             expect(result).to.equal(expectedPremium);
