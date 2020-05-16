@@ -23,7 +23,7 @@ interface IOptions {
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
     
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, bool putOption) external returns (uint256, uint256);
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType) external returns (uint256, uint256);
 
     function createATM(uint duration, uint amount, OptionType optionType) external returns (uint optionID);
     function create(uint duration, uint amount, uint strikePrice, OptionType optionType) external returns (uint optionID);

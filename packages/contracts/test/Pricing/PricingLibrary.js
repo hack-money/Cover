@@ -2,7 +2,7 @@ const { use, expect } = require('chai');
 const { deployContract, solidity, MockProvider } = require('ethereum-waffle');
 
 const Pricing = require('../../build/Pricing.json');
-const { calculateExtrinsicValue } = require('./helpers');
+const { calculateExtrinsicValue, calcPremiumOffChain } = require('./helpers');
 
 use(solidity);
 
@@ -37,14 +37,14 @@ describe('Pricing utilities', async () => {
             const strikePrice = 200 * priceDecimals;
             const amount = 3;
             const currentPrice = 250 * priceDecimals;
-            const putOption = true;
+            const optionType = 1;
             const intrinsicValue = 0; // 0 was the intrinsic value would be negative
 
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
                 currentPrice,
-                putOption
+                optionType
             );
             expect(result).to.equal(intrinsicValue / priceDecimals);
         });
@@ -53,14 +53,14 @@ describe('Pricing utilities', async () => {
             const strikePrice = 200 * priceDecimals;
             const amount = 3;
             const currentPrice = 180 * priceDecimals;
-            const putOption = true;
+            const optionType = 1;
             const intrinsicValue = (strikePrice - currentPrice) * amount; // 0 was the intrinsic value would be negative
 
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
                 currentPrice,
-                putOption
+                optionType
             );
             expect(result).to.equal(intrinsicValue / priceDecimals);
         });
@@ -69,14 +69,14 @@ describe('Pricing utilities', async () => {
             const strikePrice = 200 * priceDecimals;
             const amount = 3;
             const currentPrice = 180 * priceDecimals;
-            const putOption = false;
+            const optionType = 0;
             const intrinsicValue = 0; // 0 was the intrinsic value would be negative
 
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
                 currentPrice,
-                putOption
+                optionType
             );
             expect(result).to.equal(intrinsicValue / priceDecimals);
         });
@@ -85,17 +85,15 @@ describe('Pricing utilities', async () => {
             const strikePrice = 200 * priceDecimals;
             const amount = 3;
             const currentPrice = 220 * priceDecimals;
-            const putOption = false;
+            const optionType = 0;
             const intrinsicValue = (currentPrice - strikePrice) * amount; // 0 was the intrinsic value would be negative
 
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
                 currentPrice,
-                putOption
+                optionType
             );
-            console.log({ result });
-            console.log({ intrinsicValue });
             expect(result).to.equal(intrinsicValue / priceDecimals);
         });
     });
@@ -107,53 +105,84 @@ describe('Pricing utilities', async () => {
             const duration = 16;
             const volatility = 5;
 
-            const timeValue = calculateExtrinsicValue(
-                amount,
-                currentPrice,
-                duration,
-                volatility
-            );
-            const result = await pricingContract.calculateTimeValue(
-                amount,
-                currentPrice,
-                duration,
-                volatility
-            );
-
-            expect(result).to.equal(timeValue);
-        });
-    });
-
-    describe('Premium', async () => {
-        it('should calculate premium of an option', async () => {
-            // Scenario: Out of the money PUT option
-            const putOption = true;
-            const strikePrice = 180 * priceDecimals;
-            const amount = 100 * priceDecimals;
-            const currentPrice = 200 * priceDecimals;
-            const duration = 16;
-            const volatility = 6;
-            const intrinsicValue = 0;
-
-            const timeValue = calculateExtrinsicValue(
+            const extrinsicValue = calculateExtrinsicValue(
                 amount,
                 currentPrice,
                 duration,
                 volatility,
                 priceDecimals
             );
+            const result = await pricingContract.calculateExtrinsicValue(
+                amount,
+                currentPrice,
+                duration,
+                volatility
+            );
 
-            const premium = intrinsicValue + timeValue;
+            expect(result).to.equal(extrinsicValue);
+        });
+    });
+
+    describe('Premium', async () => {
+        it('should calculate premium of an option, no intrinsic value', async () => {
+            // Scenario: Out of the money PUT option
+            const optionType = 1;
+            const strikePrice = 180 * priceDecimals;
+            const amount = 100e6;
+            const currentPrice = 200 * priceDecimals;
+            const duration = 16;
+            const volatility = 6;
+
+            const expectedPremium = calcPremiumOffChain(
+                amount,
+                currentPrice,
+                strikePrice,
+                duration,
+                volatility,
+                priceDecimals,
+                optionType
+            );
             const result = await pricingContract.calculatePremium(
                 strikePrice,
                 amount,
                 duration,
                 currentPrice,
                 volatility,
-                putOption
+                optionType
             );
 
-            expect(result).to.equal(premium);
+            expect(result).to.equal(expectedPremium);
+        });
+
+        it('should calculate premium of an option, has intrinsic value', async () => {
+            // Scenario: In the money PUT option
+            const optionType = 1;
+            const strikePrice = 200 * priceDecimals;
+            const amount = 100e6;
+            const currentPrice = 180 * priceDecimals;
+            const duration = 16;
+            const volatility = 6;
+
+            const expectedPremium = calcPremiumOffChain(
+                amount,
+                currentPrice,
+                strikePrice,
+                duration,
+                volatility,
+                priceDecimals,
+                optionType
+            );
+
+            const result = await pricingContract.calculatePremium(
+                strikePrice,
+                amount,
+                duration,
+                currentPrice,
+                volatility,
+                optionType
+            );
+
+            expect(result).to.equal(expectedPremium);
         });
     });
 });

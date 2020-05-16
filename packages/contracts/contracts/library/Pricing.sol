@@ -12,7 +12,7 @@ contract Pricing is Ownable {
     /**
     * @dev Computes the premium charged on the option. Option price = intrinsic value + time value. Note: platform
     * fee not included in this calculation, accounted for seperately
-    * @param strikePrice - price at which the underlying asset is bought/sold when the option is exercised
+    * @param strikePrice - price at which the underlying asset is bought/sold when the option is exercised (priceDecimals)
     * @param amount - amount of the asset for which an option is being purchased
     * @param duration - time period until expiry of the option
     * @param currentPrice - current price of the underlying asset
@@ -22,7 +22,7 @@ contract Pricing is Ownable {
     function calculatePremium(uint256 strikePrice, uint256 amount, uint256 duration, uint256 currentPrice, uint256 volatility, bool putOption) public pure returns (uint256) {
         uint256 intrinsicValue = calculateIntrinsicValue(strikePrice, amount, currentPrice, putOption);
         uint256 timeValue = calculateTimeValue(amount, currentPrice, duration, volatility);
-        return intrinsicValue.add(timeValue);
+        return intrinsicValue.add(timeValue).div(priceDecimals);
     }
 
     /**

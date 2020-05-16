@@ -18,14 +18,14 @@ function calculateIntrinsicValue(
     amount,
     putOption
 ) {
-    if (putOption) {
+    if (putOption === 1) {
         if (strikePrice < currentPrice) {
             return 0;
         }
         return ((strikePrice - currentPrice) / priceDecimals) * amount;
     }
 
-    if (!putOption) {
+    if (putOption === 0) {
         if (currentPrice < strikePrice) {
             return 0;
         }
@@ -49,14 +49,15 @@ function calcPremiumOffChain(
         amount,
         putOption
     );
-    const timeValue = calculateExtrinsicValue(
+    const extrinsicValue = calculateExtrinsicValue(
         amount,
         currentPrice,
         duration,
         volatility,
         priceDecimals
     );
-    return intrinsicValue + timeValue;
+
+    return intrinsicValue + extrinsicValue;
 }
 
 module.exports = {
