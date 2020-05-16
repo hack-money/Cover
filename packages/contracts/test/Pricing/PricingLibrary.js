@@ -8,7 +8,7 @@ use(solidity);
 
 const priceDecimals = 1e8;
 
-describe('Pricing utilities', async () => {
+describe.only('Pricing utilities', async () => {
     let pricingContract;
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet] = provider.getWallets();
@@ -27,8 +27,8 @@ describe('Pricing utilities', async () => {
 
     it('should calculate platform fee', async () => {
         const amount = 500;
-        const platformFeePercentage = 1;
-        const fee = amount * (platformFeePercentage / 100); // 1% fee set in contract
+        const platformFeePercentage = 2000; // 2%
+        const fee = amount * (platformFeePercentage / 10000); // 2%
         const result = await pricingContract.calculatePlatformFee(
             amount,
             platformFeePercentage

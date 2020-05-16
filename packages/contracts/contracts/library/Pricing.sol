@@ -41,10 +41,10 @@ library Pricing {
 
     /**
      * @dev Compute the time value component of an option price. Uses an approximation to the Black Scholes equation
-     * @param amount - [placeholder]
+     * @param amount - quantity which the option represents
      * @param currentPrice - price of the underlying asset
-     * @param duration - time period of the option (days)
-     * @param volatility - measure of the volatility of the underlying asset (?)
+     * @param duration - time period of the option (seconds)
+     * @param volatility - measure of the volatility of the underlying asset
      * @return Time value of the option, number divided by price decimals
      */
     function calculateExtrinsicValue(
@@ -73,6 +73,10 @@ library Pricing {
 
     /**
      * @dev Calculate the total intrinsic value of the option
+     * @param strikePrice - underlying asset price at which option can be exercised
+     * @param amount - quantity for which the option represents
+     * @param currentPrice - current market price of underlying asset
+     * @param optionTypeInput -
      * @return Total intrinsic value of whole option amount. Number divided by priceDecimals
      */
     function calculateIntrinsicValue(
@@ -103,16 +107,21 @@ library Pricing {
     }
 
     /**
-     * @dev Compute platform fee for providing the option. Calculated as 1% of the
-     * amount for which an option is purchased
+     * @dev Compute platform fee for providing the option. Calculated as a percentage of the
+     * option amount
      * @param amount quantity of asset for which option is being purchased
+     * @param platformPercentageFee - percentage of the amount taken as a platform fee. Expected to be
+     * provider as a 4 digit number, to allow 0.01 percentage points to be specified.
+     *
+     * e.g. platformPercentageFee = 125 => 1.25%
      */
     function calculatePlatformFee(uint256 amount, uint256 platformPercentageFee)
         public
         pure
         returns (uint256)
     {
-        return (amount.mul(platformPercentageFee)).div(100);
+        // two div(100) to allow for 0.01 percentage fees
+        return (amount.mul(platformPercentageFee)).div(100).div(100);
     }
 
     /**

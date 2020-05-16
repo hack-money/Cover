@@ -32,7 +32,7 @@ contract Options is IOptions, Ownable {
     OptionType public optionType; // Does this contract sell put or call options?
     
     uint256 constant priceDecimals = 1e8; // number of decimal places in strike price
-    uint256 public platformPercentageFee = 1;
+    uint256 public platformPercentageFee = 10000; // percentage fee = 1%
 
 
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
@@ -137,14 +137,18 @@ contract Options is IOptions, Ownable {
 
     /**
     * @dev Set platform fee percentage. Protected by onlyOwner
-    * @param _platformPercentageFee - percentage fee taken as a platform fee
+    * @param _platformPercentageFee - percentage of the amount taken as a platform fee. Expected to be
+     * provider as a 4 digit number, to allow 0.01 percentage points to be specified. 
+     *
+     * e.g. platformPercentageFee = 125 => 1.25%
      */
     function setPlatformPercentageFee(uint256 _platformPercentageFee)
         public
         override
         onlyOwner
     {
-        require(_platformPercentageFee <= 100, 'Options: PLATFORM_FEE_TOO_HIGH');
+        // check less than 100000 => max fee is 100%
+        require(_platformPercentageFee <= 100000, 'Options: PLATFORM_FEE_TOO_HIGH');
         platformPercentageFee = _platformPercentageFee;
     }
 
@@ -200,7 +204,7 @@ contract Options is IOptions, Ownable {
 
         optionID = options.length;
         // Exchange paymentTokens into poolTokens to be added to pool
-        exchangeTokens(premium, optionID);
+        // exchangeTokens(premium, optionID);
 
         // Lock collateral which a created option would be exercised against
         _internalLock(newOption);
