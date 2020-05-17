@@ -1,6 +1,9 @@
-type Gravatar @entity {
+type OptionStatus @entity {
   id: ID!
-  owner: Bytes!
-  displayName: String!
-  imageUrl: String!
+  holder: Bytes!
+  optionType: Int!
+  strikeAmount: BigInt!
+  amount: BigInt!
+  startTime: BigInt!
+  expirationTime: BigInt!
 }
