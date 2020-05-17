@@ -11,6 +11,7 @@
   "bugs": {
     "url": "https://github.com/hack-money/hack/issues"
   },
+  "private": true,
   "homepage": "https://github.com/hack-money/hack#readme",
   "scripts": {
     "build": "waffle .waffle.json",
