@@ -28,8 +28,8 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/@graphprotocol/graph-ts",
-      "**/@graphprotocol/graph-ts/**"
+      "**/contracts",
+      "**/contracts/**"
     ]
   },
   "devDependencies": {
