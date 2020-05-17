@@ -1,0 +1,6 @@
+local:
+  contracts:
+    Options:
+      address: '0x01'
+      startBlock: 10086552
+  networkName: local

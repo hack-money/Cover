@@ -1,0 +1,29 @@
+specVersion: 0.0.2
+description: Subgraph for the hack protocol
+repository: https://github.com/graphprotocol/example-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Hack
+    network: mainnet
+    source:
+      address: '0xDdA1b7A6dEF0e0FCFdc1977a6F515AbF79f93957'
+      abi: Options
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Option
+      abis:
+        - name: Options
+          file: ./abis/Options.json
+      eventHandlers:
+        - event: Create(indexed uint256,indexed address,uint256,uint256)
+          handler: handleNewOption
+        - event: Exercise(indexed uint256,uint256)
+          handler: handleExerciseOption
+        - event: Expire(indexed uint256)
+          handler: handleExpireOption
+      file: ./src/mapping.ts
