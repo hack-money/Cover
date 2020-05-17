@@ -1,9 +1,15 @@
-type OptionStatus @entity {
+type OptionCreation @entity {
   id: ID!
   holder: Bytes!
-  optionType: Int!
-  strikeAmount: BigInt!
-  amount: BigInt!
-  startTime: BigInt!
-  expirationTime: BigInt!
+  fee: BigInt!
+  premium: BigInt!
+}
+
+type OptionExercise @entity {
+    id: ID!
+    exchangeAmout: BigInt!
+}
+
+type OptionExpiry @entity {
+    id: ID!
 }

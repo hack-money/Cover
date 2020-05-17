@@ -22,8 +22,8 @@ dataSources:
       eventHandlers:
         - event: Create(indexed uint256,indexed address,uint256,uint256)
           handler: handleNewOption
-        # - event: Exercise(uint,uint)
-        #   handler: handleExerciseOption
-        # - event: Expire(uint)
-        #   handler: handleExpireOption
+        - event: Exercise(indexed uint256,uint256)
+          handler: handleExerciseOption
+        - event: Expire(indexed uint256)
+          handler: handleExpireOption
       file: ./src/mapping.ts

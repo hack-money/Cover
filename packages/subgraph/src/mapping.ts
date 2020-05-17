@@ -1,32 +1,18 @@
-import { Create } from '../generated/Hack/Options';
-import { OptionStatus } from '../generated/schema';
+import { Create, Exercise, Expire } from '../generated/Hack/Options';
+import { OptionCreation, OptionExercise, OptionExpiry } from '../generated/schema';
 
 export function handleNewOption(event: Create): void {
-  let option = new OptionStatus(event.params.optionId.toHex());
-  option.holder = event.params.account;
-  option.save();
+  let optionCreation = new OptionCreation(event.params.optionId.toHex());
+  optionCreation.holder = event.params.account;
+  optionCreation.save();
 }
 
-// export function handleExerciseOption(event: Exercise): void {
-//   let id = event.params.id.toHex()
-//   let gravatar = Gravatar.load(id)
-//   if (gravatar == null) {
-//     gravatar = new Gravatar(id)
-//   }
-//   gravatar.owner = event.params.owner
-//   gravatar.displayName = event.params.displayName
-//   gravatar.imageUrl = event.params.imageUrl
-//   gravatar.save()
-// }
+export function handleExerciseOption(event: Exercise): void {
+  const optionExercise = new OptionExercise(event.params.optionId.toHex());
+  optionExercise.save();
+}
 
-// export function handleExpireOption(event: Expire): void {
-//     let id = event.params.id.toHex()
-//     let gravatar = Gravatar.load(id)
-//     if (gravatar == null) {
-//       gravatar = new Gravatar(id)
-//     }
-//     gravatar.owner = event.params.owner
-//     gravatar.displayName = event.params.displayName
-//     gravatar.imageUrl = event.params.imageUrl
-//     gravatar.save()
-//   }
+export function handleExpireOption(event: Expire): void {
+  const optionExpiry = new OptionExpiry(event.params.optionId.toHex());
+  optionExpiry.save();
+}
