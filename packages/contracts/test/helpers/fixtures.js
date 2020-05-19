@@ -1,5 +1,4 @@
 const { Contract } = require('ethers');
-const { bigNumberify } = require('ethers/utils');
 const { deployContract } = require('ethereum-waffle');
 
 const UniswapV2Pair = require('@uniswap/v2-core/build/UniswapV2Pair.json');
@@ -10,12 +9,12 @@ const WETH9 = require('@uniswap/v2-periphery/build/WETH9.json');
 const ERC20Mintable = require('../../build/ERC20Mintable.json');
 
 const Options = require('../../build/Options.json');
+const OptionsFactory = require('../../build/OptionsFactory.json');
+
 const LiquidityPool = require('../../build/LiquidityPool.json');
 const LiquidityPoolFactory = require('../../build/LiquidityPoolFactory.json');
 
-function expandTo18Decimals(n) {
-    return bigNumberify(n).mul(bigNumberify(10).pow(18));
-}
+const { expandTo18Decimals } = require('./utilities');
 
 const overrides = {
     gasLimit: 9999999,
@@ -112,6 +111,21 @@ async function liquidityPoolFactoryFixture(provider, [wallet]) {
     return { liquidityPoolFactory };
 }
 
+async function optionFactoryFixture(provider, [wallet]) {
+    const { liquidityPoolFactory } = await liquidityPoolFactoryFixture(
+        provider,
+        [wallet]
+    );
+    const { token0, token1, factory } = await v2Fixture(provider, [wallet]);
+    const optionsFactory = await deployContract(
+        wallet,
+        OptionsFactory,
+        [factory.address, liquidityPoolFactory.address],
+        overrides
+    );
+    return { token0, token1, liquidityPoolFactory, optionsFactory };
+}
+
 // Fixture that sets up the option, liquidityPool and Uniswap V2
 async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     const { token0, token1, router, pair } = await v2Fixture(provider, [
@@ -165,4 +179,6 @@ module.exports = {
     pairFixture,
     v2Fixture,
     generalTestFixture,
+    liquidityPoolFactoryFixture,
+    optionFactoryFixture,
 };
