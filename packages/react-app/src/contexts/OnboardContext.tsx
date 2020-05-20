@@ -21,6 +21,7 @@ interface Props {
 
 interface State extends UserState {
   onboard: API;
+  setup: Function;
 }
 
 export const OnboardContext = createContext({} as State);
@@ -45,6 +46,7 @@ class OnboardProvider extends Component<Props, State> {
     wallet: {} as Wallet,
     mobileDevice: false,
     appNetworkId: 0,
+    setup: () => null,
   };
 
   static propTypes = {
@@ -59,8 +61,8 @@ class OnboardProvider extends Component<Props, State> {
       networkId: 4,
       walletCheck: walletChecks,
       walletSelect: {
-        heading: 'Select a wallet to connect to NoteStream',
-        description: 'To use NoteStream you need an Ethereum wallet. Please select one from below:',
+        heading: 'Select a wallet to connect to Olive',
+        description: 'To use Olive you need an Ethereum wallet. Please select one from below:',
         wallets,
       },
       subscriptions: {
@@ -87,11 +89,7 @@ class OnboardProvider extends Component<Props, State> {
     };
   }
 
-  componentDidMount(): void {
-    this.setup('MetaMask');
-  }
-
-  async setup(defaultWallet: string): Promise<void> {
+  setup = async (defaultWallet: string): Promise<void> => {
     const { onboard } = this.state;
     try {
       const selected = await onboard.walletSelect(defaultWallet);
@@ -110,12 +108,16 @@ class OnboardProvider extends Component<Props, State> {
     } catch (error) {
       console.log('error onboarding', error);
     }
-  }
+  };
 
   setConfig = (config: ConfigOptions): void => this.state.onboard.config(config);
 
   render(): ReactElement {
-    return <OnboardContext.Provider value={this.state}>{this.props.children}</OnboardContext.Provider>;
+    return (
+      <OnboardContext.Provider value={{ ...this.state, setup: this.setup }}>
+        {this.props.children}
+      </OnboardContext.Provider>
+    );
   }
 }
 
@@ -137,6 +139,11 @@ export const useAddress = (): Address => {
 export const useWallet = (): Wallet => {
   const { wallet } = useOnboardContext();
   return wallet;
+};
+
+export const useSetup = (): Function => {
+  const { setup } = useOnboardContext();
+  return setup;
 };
 
 export default OnboardProvider;

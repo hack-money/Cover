@@ -76,6 +76,7 @@ const links = [
 
 const SideBar = (): ReactElement => {
   const classes = useStyles();
+  const setup = useSetup();
   const userAddress = useAddress();
 
   const [open, setOpen] = useState(true);
@@ -96,14 +97,20 @@ const SideBar = (): ReactElement => {
         <IconButton onClick={toggleDraw}>{open ? <ChevronLeftIcon /> : <ChevronRightIcon />}</IconButton>
       </div>
       <Divider />
-      <ListItem button>
-        <ListItemIcon>
-          <Avatar className={classes.avatar}>
-            <Blockies seed={userAddress} size={10} />
-          </Avatar>
-        </ListItemIcon>
-        <ListItemText primary={'Connect to Wallet'} />
-      </ListItem>
+      {userAddress ? (
+        <ListItem button>
+          <ListItemIcon>
+            <Avatar className={classes.avatar}>
+              <Blockies seed={userAddress} size={10} />
+            </Avatar>
+          </ListItemIcon>
+          <ListItemText primary={`${userAddress.slice(0, 6)}...${userAddress.slice(-5, -1)}`} />
+        </ListItem>
+      ) : (
+        <ListItem button onClick={() => setup()}>
+          <ListItemText primary={'Connect to Wallet'} />
+        </ListItem>
+      )}
       <Divider />
       <List>
         {links.map((link, index) => (
