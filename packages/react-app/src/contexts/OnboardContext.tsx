@@ -58,11 +58,11 @@ class OnboardProvider extends Component<Props, State> {
 
     const initialisation: Initialization = {
       dappId: testid,
-      networkId: 4,
+      networkId: 3,
       walletCheck: walletChecks,
       walletSelect: {
-        heading: 'Select a wallet to connect to Olive',
-        description: 'To use Olive you need an Ethereum wallet. Please select one from below:',
+        heading: 'Connect your wallet to Cover',
+        description: 'To use Cover you need an Ethereum wallet. Please select one from below:',
         wallets,
       },
       subscriptions: {

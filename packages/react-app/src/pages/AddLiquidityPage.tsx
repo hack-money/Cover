@@ -30,13 +30,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AddLiquidityPage = (): ReactElement => {
+const AddLiquidityPage = (props: any): ReactElement => {
   const classes = useStyles();
 
   return (
     <>
       <Paper className={`${classes.pageElement} ${classes.paper}`}>
-        <PoolCardContents />
+        <PoolCardContents
+          factoryAddress={props.factoryAddress}
+          poolToken={props.poolToken}
+          paymentToken={props.paymentToken}
+        />
       </Paper>
     </>
   );

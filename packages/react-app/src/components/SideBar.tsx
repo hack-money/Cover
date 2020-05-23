@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -18,7 +18,7 @@ import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import HelpIcon from '@material-ui/icons/Help';
 import Blockies from 'react-blockies';
 
-import { useAddress } from '../contexts/OnboardContext';
+import { useAddress, useSetup } from '../contexts/OnboardContext';
 
 const drawerWidth = 240;
 
@@ -74,16 +74,16 @@ const links = [
   { text: 'FAQ', icon: <HelpIcon />, url: '/faq' },
 ];
 
-const SideBar = (): ReactElement => {
+const SideBar = ({ open, setOpen }: { open: boolean; setOpen: Function }): ReactElement => {
   const classes = useStyles();
   const setup = useSetup();
   const userAddress = useAddress();
 
-  const [open, setOpen] = useState(true);
-
   const toggleDraw = (): void => {
     setOpen(!open);
   };
+
+  useEffect(() => setup(), [setup]);
 
   return (
     <Drawer
@@ -108,6 +108,7 @@ const SideBar = (): ReactElement => {
         </ListItem>
       ) : (
         <ListItem button onClick={() => setup()}>
+          <ListItemIcon></ListItemIcon>
           <ListItemText primary={'Connect to Wallet'} />
         </ListItem>
       )}
