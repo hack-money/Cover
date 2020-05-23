@@ -20,10 +20,10 @@ module.exports = {
         reporter: 'spec',
     },
     networks: {
-        rinkeby: {
-            url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-            chainId: 4,
-            from: process.env.TESTING_ACCOUNT_ADDRESS,
+        ropsten: {
+            url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
+            chainId: 3,
+            from: process.env.TESTING_ACCOUNT,
             accounts: [process.env.TESTING_ACCOUNT],
             // gas: 5500000,
             gasPrice: 10000000000,

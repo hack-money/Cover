@@ -1,0 +1,6 @@
+ropsten:
+  contracts:
+    Options:
+      address: '0x650e6A37b89Ad1A8E866c80F6DbF889749094298'
+      startBlock: 7957620
+  networkName: ropsten

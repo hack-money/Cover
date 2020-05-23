@@ -1,0 +1,30 @@
+specVersion: 0.0.2
+description: Subgraph for Cover
+repository: https://github.com/hack-money/Cover
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Cover
+    network: {{networkName}}
+    source:
+      address: '{{contracts.Options.address}}'
+      abi: Options
+      startBlock: {{contracts.Options.startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Option
+      abis:
+        - name: Options
+          file: ./abis/Options.json
+      eventHandlers:
+        - event: Create(indexed uint256,indexed address,uint256,uint256)
+          handler: handleNewOption
+        - event: Exercise(indexed uint256,uint256)
+          handler: handleExerciseOption
+        - event: Expire(indexed uint256)
+          handler: handleExpireOption
+      file: ./src/mapping.ts

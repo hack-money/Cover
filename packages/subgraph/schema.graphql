@@ -1,0 +1,9 @@
+type Option @entity {
+  id: ID!
+  holder: Bytes!
+  fee: BigInt!
+  premium: BigInt!
+  exercised: Boolean!
+  exchangeAmount: BigInt!
+  expired: Boolean!
+}

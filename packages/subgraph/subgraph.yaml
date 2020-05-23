@@ -1,0 +1,30 @@
+specVersion: 0.0.2
+description: Subgraph for Cover
+repository: https://github.com/hack-money/Cover
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Cover
+    network: ropsten
+    source:
+      address: '0x650e6A37b89Ad1A8E866c80F6DbF889749094298'
+      abi: Options
+      startBlock: 7957620
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Option
+      abis:
+        - name: Options
+          file: ./abis/Options.json
+      eventHandlers:
+        - event: Create(indexed uint256,indexed address,uint256,uint256)
+          handler: handleNewOption
+        - event: Exercise(indexed uint256,uint256)
+          handler: handleExerciseOption
+        - event: Expire(indexed uint256)
+          handler: handleExpireOption
+      file: ./src/mapping.ts

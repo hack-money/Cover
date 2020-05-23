@@ -28,6 +28,8 @@
       "packages/*"
     ],
     "nohoist": [
+      "**/contracts",
+      "**/contracts/**",
       "**/@graphprotocol/graph-ts",
       "**/@graphprotocol/graph-ts/**"
     ]

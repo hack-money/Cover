@@ -1,0 +1,43 @@
+{
+  "name": "@Cover/subgraph",
+  "version": "0.1.0",
+  "scripts": {
+    "build-contract": "solc contracts/Options.sol --abi -o abis --overwrite && solc contracts/Options.sol --bin -o bin --overwrite",
+    "create": "graph create thomas-waite/Cover --node https://api.thegraph.com/deploy/",
+    "create-local": "graph create thomas-waite/Cover --node http://127.0.0.1:8020",
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy $SUBGRAPH --debug --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
+    "deploy-local": "graph deploy thomas-waite/Cover --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
+    "clean": "shx rm -rf ./build ./src/types ./subgraph.yaml",
+    "deploy:goerli": "yarn prepare:goerli && SUBGRAPH=thomas-waite/cover-goerli yarn deploy",
+    "deploy:kovan": "yarn prepare:kovan && SUBGRAPH=thomas-waite/cover-kovan yarn deploy",
+    "deploy:rinkeby": "yarn prepare:rinkeby && SUBGRAPH=thomas-waite/cover-rinkeby yarn deploy",
+    "deploy:ropsten": "yarn prepare:ropsten && SUBGRAPH=thomas-waite/cover-ropsten yarn deploy",
+    "prepare:goerli": "NETWORK_NAME=goerli node ./updateAddresses.js && NETWORK_NAME=goerli node ./templatify.js",
+    "prepare:kovan": "NETWORK_NAME=kovan node ./updateAddresses.js && NETWORK_NAME=kovan node ./templatify.js",
+    "prepare:rinkeby": "NETWORK_NAME=rinkeby node ./updateAddresses.js && NETWORK_NAME=rinkeby node ./templatify.js",
+    "prepare:ropsten": "NETWORK_NAME=ropsten node ./updateAddresses.js && NETWORK_NAME=ropsten node ./templatify.js",
+    "prepare:local": "NETWORK_NAME=local node ./updateAddresses.js && NETWORK_NAME=local node ./templatify.js",
+    "remove-local": "graph remove thomas-waite/Cover --node http://127.0.0.1:8020/",
+    "reset-local": "yarn codegen && yarn remove-local && yarn create-local && yarn deploy-local"
+  },
+  "private": true,
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.18.0",
+    "@graphprotocol/graph-ts": "^0.18.0",
+    "shx": "^0.3.2"
+  },
+  "dependencies": {
+    "typy": "^3.3.0",
+    "fs-extra": "^9.0.0",
+    "handlebars": "^4.7.6",
+    "js-yaml": "^3.13.1",
+    "path": "^0.12.7",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
+    "truffle": "^5.0.4",
+    "truffle-contract": "^4.0.5",
+    "truffle-hdwallet-provider": "^1.0.4"
+  }
+}
