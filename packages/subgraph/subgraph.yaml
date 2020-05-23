@@ -1,15 +1,16 @@
 specVersion: 0.0.2
-description: Subgraph for the hack protocol
-repository: https://github.com/graphprotocol/example-subgraph
+description: Subgraph for Cover
+repository: https://github.com/hack-money/Cover
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Hack
-    network: mainnet
+    name: Cover
+    network: ropsten
     source:
-      address: '0xDdA1b7A6dEF0e0FCFdc1977a6F515AbF79f93957'
+      address: '0x650e6A37b89Ad1A8E866c80F6DbF889749094298'
       abi: Options
+      startBlock: 7957620
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

@@ -1,9 +1,9 @@
-type OptionCreation @entity {
+type Option @entity {
   id: ID!
   holder: Bytes!
   fee: BigInt!
   premium: BigInt!
   exercised: Boolean!
-  exchangeAmout: BigInt!
+  exchangeAmount: BigInt!
   expired: Boolean!
 }
