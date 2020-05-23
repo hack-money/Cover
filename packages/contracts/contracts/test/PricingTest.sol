@@ -1,10 +1,8 @@
 pragma solidity >=0.6.0 <0.7.0;
 
-import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
+import {Pricing} from '../library/Pricing.sol';
 
-library Pricing {
-    using SafeMath for uint256;
-
+contract PricingTest {
     /**
      * @dev Computes the premium charged on the option. Option price = intrinsic value + time value. Note: platform
      * fee not included in this calculation, accounted for seperately
@@ -23,20 +21,8 @@ library Pricing {
         uint256 volatility,
         int256 putOption,
         uint256 priceDecimals
-    ) internal pure returns (uint256) {
-        uint256 intrinsicValue = calculateIntrinsicValue(
-            strikePrice,
-            amount,
-            currentPrice,
-            putOption
-        );
-        uint256 extrinsicValue = calculateExtrinsicValue(
-            amount,
-            currentPrice,
-            duration,
-            volatility
-        );
-        return intrinsicValue.add(extrinsicValue).div(priceDecimals);
+    ) public pure returns (uint256) {
+        return Pricing.calculatePremium(strikePrice, amount, duration, currentPrice, volatility, putOption, priceDecimals);
     }
 
     /**
@@ -52,23 +38,8 @@ library Pricing {
         uint256 currentPrice,
         uint256 duration,
         uint256 volatility
-    ) internal pure returns (uint256) {
-        /**
-        * Source: https://quant.stackexchange.com/questions/1150/what-are-some-useful-approximations-to-the-black-scholes-formula
-        * Assumptions: `short` duration periods, constant volatility of underlying asset, option close to the money
-        * premium = 0.4 * underlyingAsset price * volatility * sqrt(duration)
-
-        * Explanation of various divisors
-        * - div(10) to account for 0.4 being represented as an integer
-        * - div(100) to account for vol being represented as an integer when it's actually a percentage
-        *
-         */
-        uint256 resultOfMuls = uint256(4)
-            .mul(currentPrice)
-            .mul(volatility)
-            .mul(squareRoot(duration))
-            .mul(amount);
-        return resultOfMuls.div(10).div(100);
+    ) public pure returns (uint256) {
+      return Pricing.calculateExtrinsicValue(amount, currentPrice, duration, volatility);
     }
 
     /**
@@ -84,26 +55,8 @@ library Pricing {
         uint256 amount,
         uint256 currentPrice,
         int256 optionTypeInput
-    ) internal pure returns (uint256) {
-        // intrinsic value per unit, multiplied by number of units
-        if (optionTypeInput == 1) {
-            if (strikePrice < currentPrice) {
-                return 0;
-            } else {
-                return
-                    (strikePrice.sub(currentPrice)).mul(amount)
-                    ; // intrinsicValue = (strikePrice - currentPrice) * amount
-            }
-        }
-
-        if (optionTypeInput == 0) {
-            if (currentPrice < strikePrice) {
-                return 0;
-            } else {
-                return
-                    (currentPrice.sub(strikePrice)).mul(amount); // intrinsicValue = (currentPrice - strikePrice) * amount
-            }
-        }
+    ) public pure returns (uint256) {
+        return Pricing.calculateIntrinsicValue(strikePrice, amount, currentPrice, optionTypeInput);
     }
 
     /**
@@ -116,12 +69,11 @@ library Pricing {
      * e.g. platformPercentageFee = 125 => 1.25%
      */
     function calculatePlatformFee(uint256 amount, uint256 platformPercentageFee)
-        internal
+        public
         pure
         returns (uint256)
     {
-        // two div(100) to allow for 0.01 percentage fees
-        return (amount.mul(platformPercentageFee)).div(100).div(100);
+        return Pricing.calculatePlatformFee(amount, platformPercentageFee);
     }
 
     /**
@@ -134,19 +86,7 @@ library Pricing {
      * @return square rooted value
 
      */
-    function squareRoot(uint256 value) internal pure returns (uint256) {
-        require(value != uint256(0), 'Pricing: can not sqrt 0');
-
-        if (value > 3) {
-            uint256 z = (value + 1) / 2;
-            uint256 y = value;
-            while (z < y) {
-                y = z;
-                z = (value / z + z) / 2;
-            }
-            return y;
-        } else {
-            return 1;
-        }
+    function squareRoot(uint256 value) public pure returns (uint256) {
+        return Pricing.squareRoot(value);
     }
 }

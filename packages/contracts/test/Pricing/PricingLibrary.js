@@ -1,7 +1,7 @@
 const { use, expect } = require('chai');
 const { deployContract, solidity, MockProvider } = require('ethereum-waffle');
 
-const Pricing = require('../../build/Pricing.json');
+const Pricing = require('../../build/PricingTest.json');
 const { calculateExtrinsicValue, calcPremiumOffChain } = require('./helpers');
 
 use(solidity);
