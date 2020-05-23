@@ -8,6 +8,8 @@ import TokenSelector from './form/TokenSelector';
 import { Address } from '../types/types';
 
 // const useStyles = makeStyles((theme) => ({}));
+const daiAddress = '0xf80a32a835f79d7787e8a8ee5721d0feafd78108';
+const usdcAddress = '0x851def71f0e6a903375c1e536bd9ff1684bad802';
 
 const PoolSelector = ({
   poolToken,
@@ -26,7 +28,7 @@ const PoolSelector = ({
         <TokenSelector
           label="Pool Token"
           helperText="This is the token held within the liquidity pool"
-          address={poolToken}
+          address={poolToken || daiAddress}
           setAddress={setPoolToken}
         />
       </Grid>
@@ -34,7 +36,7 @@ const PoolSelector = ({
         <TokenSelector
           label="Payment Token"
           helperText="This is the token which option holder will pay with"
-          address={paymentToken}
+          address={paymentToken || usdcAddress}
           setAddress={setPaymentToken}
         />
       </Grid>
