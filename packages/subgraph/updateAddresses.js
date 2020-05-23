@@ -43,18 +43,13 @@ function getNetworkNameForSubgraph() {
   const networks = yaml.load(
     await fs.readFile(networksFilePath, { encoding: 'utf-8' }),
   );
-  console.log({ networks });
-  console.log({ networkName });
 
   const network = t(networks, networkName).safeObject;
-  console.log({ network });
-  // TODO: uncomment
-  //   console.log({ network });
-  //   if (t(network).isFalsy) {
-  //     throw new Error(
-  //       'Please set either a "NETWORK_NAME" or a "SUBGRAPH" environment variable',
-  //     );
-  //   }
+  if (t(network).isFalsy) {
+    throw new Error(
+      'Please set either a "NETWORK_NAME" or a "SUBGRAPH" environment variable',
+    );
+  }
 
   network.contracts.Options.address = addresses.Options;
   await fs.writeFile(networksFilePath, yaml.safeDump(networks));

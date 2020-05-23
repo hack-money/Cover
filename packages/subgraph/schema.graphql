@@ -3,13 +3,7 @@ type OptionCreation @entity {
   holder: Bytes!
   fee: BigInt!
   premium: BigInt!
-}
-
-type OptionExercise @entity {
-    id: ID!
-    exchangeAmout: BigInt!
-}
-
-type OptionExpiry @entity {
-    id: ID!
+  exercised: Boolean!
+  exchangeAmout: BigInt!
+  expired: Boolean!
 }
