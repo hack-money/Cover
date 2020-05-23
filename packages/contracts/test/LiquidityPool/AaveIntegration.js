@@ -8,7 +8,7 @@ const { startChain } = require('../helpers/startChain');
 
 use(solidity);
 
-describe('Aave integration - liquidity pool', async () => {
+describe.skip('Aave integration - liquidity pool', async () => {
     let liquidityPool;
     let dai;
     let user;

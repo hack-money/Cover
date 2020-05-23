@@ -76,17 +76,17 @@ library Pricing {
      * @param strikePrice - underlying asset price at which option can be exercised
      * @param amount - quantity for which the option represents
      * @param currentPrice - current market price of underlying asset
-     * @param optionTypeInput -
+     * @param optionTypeInput - option definition. Put option if 1, call option if 0
      * @return Total intrinsic value of whole option amount. Number divided by priceDecimals
      */
     function calculateIntrinsicValue(
         uint256 strikePrice,
         uint256 amount,
         uint256 currentPrice,
-        int256 putOption
+        int256 optionTypeInput
     ) public pure returns (uint256) {
         // intrinsic value per unit, multiplied by number of units
-        if (putOption == 1) {
+        if (optionTypeInput == 1) {
             if (strikePrice < currentPrice) {
                 return 0;
             } else {
@@ -96,7 +96,7 @@ library Pricing {
             }
         }
 
-        if (putOption == 0) {
+        if (optionTypeInput == 0) {
             if (currentPrice < strikePrice) {
                 return 0;
             } else {

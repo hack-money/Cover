@@ -24,7 +24,7 @@ const {
 
 use(solidity);
 
-describe('Options functionality', async () => {
+describe.skip('Options functionality', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;

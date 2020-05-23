@@ -8,7 +8,7 @@ use(solidity);
 
 const priceDecimals = 1e8;
 
-describe.only('Pricing utilities', async () => {
+describe('Pricing utilities', async () => {
     let pricingContract;
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet] = provider.getWallets();
