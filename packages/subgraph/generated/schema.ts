@@ -12,7 +12,7 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
-export class OptionCreation extends Entity {
+export class Option extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -20,17 +20,17 @@ export class OptionCreation extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id !== null, "Cannot save OptionCreation entity without an ID");
+    assert(id !== null, "Cannot save Option entity without an ID");
     assert(
       id.kind == ValueKind.STRING,
-      "Cannot save OptionCreation entity with non-string ID. " +
+      "Cannot save Option entity with non-string ID. " +
         'Considering using .toHex() to convert the "id" to a string.'
     );
-    store.set("OptionCreation", id.toString(), this);
+    store.set("Option", id.toString(), this);
   }
 
-  static load(id: string): OptionCreation | null {
-    return store.get("OptionCreation", id) as OptionCreation | null;
+  static load(id: string): Option | null {
+    return store.get("Option", id) as Option | null;
   }
 
   get id(): string {
@@ -68,75 +68,31 @@ export class OptionCreation extends Entity {
   set premium(value: BigInt) {
     this.set("premium", Value.fromBigInt(value));
   }
-}
 
-export class OptionExercise extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
+  get exercised(): boolean {
+    let value = this.get("exercised");
+    return value.toBoolean();
   }
 
-  save(): void {
-    let id = this.get("id");
-    assert(id !== null, "Cannot save OptionExercise entity without an ID");
-    assert(
-      id.kind == ValueKind.STRING,
-      "Cannot save OptionExercise entity with non-string ID. " +
-        'Considering using .toHex() to convert the "id" to a string.'
-    );
-    store.set("OptionExercise", id.toString(), this);
+  set exercised(value: boolean) {
+    this.set("exercised", Value.fromBoolean(value));
   }
 
-  static load(id: string): OptionExercise | null {
-    return store.get("OptionExercise", id) as OptionExercise | null;
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get exchangeAmout(): BigInt {
-    let value = this.get("exchangeAmout");
+  get exchangeAmount(): BigInt {
+    let value = this.get("exchangeAmount");
     return value.toBigInt();
   }
 
-  set exchangeAmout(value: BigInt) {
-    this.set("exchangeAmout", Value.fromBigInt(value));
-  }
-}
-
-export class OptionExpiry extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
+  set exchangeAmount(value: BigInt) {
+    this.set("exchangeAmount", Value.fromBigInt(value));
   }
 
-  save(): void {
-    let id = this.get("id");
-    assert(id !== null, "Cannot save OptionExpiry entity without an ID");
-    assert(
-      id.kind == ValueKind.STRING,
-      "Cannot save OptionExpiry entity with non-string ID. " +
-        'Considering using .toHex() to convert the "id" to a string.'
-    );
-    store.set("OptionExpiry", id.toString(), this);
+  get expired(): boolean {
+    let value = this.get("expired");
+    return value.toBoolean();
   }
 
-  static load(id: string): OptionExpiry | null {
-    return store.get("OptionExpiry", id) as OptionExpiry | null;
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
+  set expired(value: boolean) {
+    this.set("expired", Value.fromBoolean(value));
   }
 }

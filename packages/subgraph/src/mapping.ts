@@ -1,4 +1,4 @@
-import { Create, Exercise, Expire } from '../generated/Hack/Options';
+import { Create, Exercise, Expire } from '../generated/Cover/Options';
 import { Option } from '../generated/schema';
 
 export function handleNewOption(event: Create): void {
@@ -11,7 +11,7 @@ export function handleExerciseOption(event: Exercise): void {
   const id = event.params.optionId.toHex();
   let option = Option.load(id);
   option.exercised = true;
-  option.exchanegeAmount = event.params.exchangeAmount;
+  option.exchangeAmount = event.params.exchangeAmount;
   option.save();
 }
 

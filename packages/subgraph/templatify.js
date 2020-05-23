@@ -8,17 +8,17 @@ const { t } = require('typy');
 function getNetworkNameForSubgraph() {
   switch (process.env.SUBGRAPH) {
     case undefined:
-    case 'thomas-waite/hack':
+    case 'thomas-waite/Cover':
       return 'mainnet';
-    case 'thomas-waite/hack-goerli':
+    case 'thomas-waite/Cover-goerli':
       return 'goerli';
-    case 'thomas-waite/hack-kovan':
+    case 'thomas-waite/Cover-kovan':
       return 'kovan';
-    case 'thomas-waite/hack-rinkeby':
+    case 'thomas-waite/Cover-rinkeby':
       return 'rinkeby';
-    case 'thomas-waite/hack-ropsten':
+    case 'thomas-waite/Cover-ropsten':
       return 'ropsten';
-    case 'thomas-waite/hack-local':
+    case 'thomas-waite/Cover-local':
       return 'local';
     default:
       return null;
