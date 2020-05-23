@@ -2,6 +2,11 @@ import React, { ReactElement } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { useQuery } from '@apollo/client';
+import { useAddress } from '../contexts/OnboardContext';
+
+import GET_OPTIONS from '../graphql/options';
 
 const useStyles = makeStyles((theme) => ({
   layout: {
@@ -32,11 +37,29 @@ const useStyles = makeStyles((theme) => ({
 
 const ExerciseOptionsPage = (): ReactElement => {
   const classes = useStyles();
+  const userAddress = useAddress();
+  const { loading, error, data } = useQuery(GET_OPTIONS, {
+    variables: { address: userAddress || '' },
+    fetchPolicy: 'network-only',
+  });
 
+  console.log(data);
+  if (loading || error) {
+    return (
+      <Paper className={`${classes.pageElement} ${classes.paper}`}>
+        <Grid container direction="row" justify="space-around" spacing={3}>
+          <CircularProgress />
+        </Grid>
+      </Paper>
+    );
+  }
+
+  const { options } = data;
+  console.log(options);
   return (
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="row" justify="space-around" spacing={3}>
-        Placeholder screen to exercise options
+        {options.length ? 'There are options in the console' : 'No options found'}
       </Grid>
     </Paper>
   );
