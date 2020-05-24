@@ -1,12 +1,14 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import { useQuery } from '@apollo/client';
-import { useAddress } from '../contexts/OnboardContext';
 
-import GET_OPTIONS from '../graphql/options';
+import { ethers, Contract } from 'ethers';
+import { Web3Provider } from 'ethers/providers';
+
+import { useAddress, useWallet } from '../contexts/OnboardContext';
+
+import getOptionContract from '../utils/getOptionContract';
 
 const useStyles = makeStyles((theme) => ({
   layout: {
@@ -35,27 +37,43 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ExerciseOptionsPage = (): ReactElement => {
+const ExerciseOptionsPage = (props: any): ReactElement => {
   const classes = useStyles();
   const userAddress = useAddress();
-  const { loading, error, data } = useQuery(GET_OPTIONS, {
-    variables: { address: userAddress || '' },
-    fetchPolicy: 'network-only',
-  });
+  const wallet = useWallet();
 
-  console.log(data);
-  if (loading || error) {
-    return (
-      <Paper className={`${classes.pageElement} ${classes.paper}`}>
-        <Grid container direction="row" justify="space-around" spacing={3}>
-          <CircularProgress />
-        </Grid>
-      </Paper>
-    );
-  }
+  const [options, setOptions] = useState<Array<any>>([]);
+  const [optionContract, setOptionContract] = useState<Contract | null>();
 
-  const { options } = data;
-  console.log(options);
+  useEffect(() => {
+    async function getPoolContract(): Promise<void> {
+      if (props.factoryAddress && wallet.provider) {
+        const provider = new Web3Provider(wallet.provider);
+        try {
+          const optionMarket = await getOptionContract(
+            provider,
+            props.factoryAddress,
+            props.poolToken,
+            props.paymentToken,
+          );
+
+          const filter = {
+            address: optionMarket.address,
+            fromBlock: 7957620,
+            toBlock: 'latest',
+            topics: [ethers.utils.id('Create(uint indexed,address indexed,uint,uint)')],
+          };
+          console.log('finding logs');
+          provider.getLogs(filter).then(console.log);
+        } catch (e) {
+          console.error(e);
+          setOptionContract(null);
+        }
+      }
+    }
+    getPoolContract();
+  }, [wallet, userAddress, props.factoryAddress, props.poolToken, props.paymentToken]);
+
   return (
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="row" justify="space-around" spacing={3}>

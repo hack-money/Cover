@@ -78,7 +78,9 @@ const App = (): ReactElement => {
             <Route exact path="/options/buy">
               <BuyOptionsPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
             </Route>
-            <Route exact path="/options/exercise" component={ExerciseOptionsPage} />
+            <Route exact path="/options/exercise">
+              <ExerciseOptionsPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
+            </Route>
           </Switch>
         </main>
       </Router>

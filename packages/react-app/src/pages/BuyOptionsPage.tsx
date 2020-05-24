@@ -1,11 +1,12 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Grid, Paper, MenuItem, TextField } from '@material-ui/core';
+import { Button, Grid, Paper, MenuItem, TextField } from '@material-ui/core';
 
 import { Contract } from 'ethers';
 import { Web3Provider } from 'ethers/providers';
 
 // import { Address } from '../types/types';
+import IERC20 from '../abis/IERC20.json';
 
 import getOptionContract from '../utils/getOptionContract';
 import { useWallet } from '../contexts/OnboardContext';
@@ -47,9 +48,12 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
   const classes = useStyles();
   const wallet = useWallet();
 
-  // const [optionContract, setOptionContract] = useState<Contract>();
+  const [optionContract, setOptionContract] = useState<Contract>();
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Put);
   const [currentPrice, setCurrentPrice] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
+  const [premium, setPremium] = useState<string>('0');
+
   useEffect(() => {
     async function getMarketContract(): Promise<void> {
       if (props.factoryAddress && wallet.provider) {
@@ -61,9 +65,9 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
             props.poolToken,
             props.paymentToken,
           );
-          // setOptionContract(optionMarket);
-          const price = optionMarket.getPoolTokenPrice('1');
-          setCurrentPrice(price);
+          setOptionContract(optionMarket);
+          // const price = optionMarket.getPoolTokenPrice('1');
+          // setCurrentPrice(price);
         } catch (e) {
           console.error(e);
         }
@@ -72,11 +76,21 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
     getMarketContract();
   }, [wallet, props.factoryAddress, props.poolToken, props.paymentToken]);
 
+  const approveFunds = (approvalAmount: string): void => {
+    const signer = new Web3Provider(wallet.provider).getSigner();
+    const token = new Contract(props.paymentToken, IERC20.abi, signer);
+    if (optionContract) token.approve(optionContract.address, approvalAmount);
+  };
+
+  const purchaseOption = (): void => {
+    if (optionContract) optionContract.createATM(60 * 30, 500000, optionType);
+  };
+
   if (!props.paymentToken || !props.poolToken) return null;
   return (
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="column" alignContent="center" alignItems="center" spacing={3}>
-        <Grid item container spacing={3}>
+        <Grid item>
           {`I want to be able to `}
           <TextField select value={optionType} onChange={(event: any): void => setOptionType(event.target.value)}>
             <MenuItem key={0} value={OptionType.Call}>
@@ -85,9 +99,30 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
             <MenuItem key={1} value={OptionType.Put}>
               Sell
             </MenuItem>
-          </TextField>{' '}
-          {`${tokens[optionType === OptionType.Put ? props.paymentToken : props.poolToken].symbol}
-          at the price ${currentPrice}`}
+          </TextField>
+          <TextField
+            // label=""
+            placeholder=""
+            variant="outlined"
+            value={amount}
+            onChange={(val): void => setAmount(val.target.value)}
+          />
+          {`${tokens[optionType === OptionType.Put ? props.paymentToken : props.poolToken].symbol}`}
+        </Grid>
+        <Grid item>{`A premium of ${premium} ${
+          tokens[props.paymentToken].symbol
+        } will be needed to buy this option`}</Grid>
+      </Grid>
+      <Grid item container spacing={3}>
+        <Grid item>
+          <Button variant="contained" color="primary" onClick={(): void => approveFunds('50000000')}>
+            Approve
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button variant="contained" color="primary" onClick={(): void => purchaseOption()}>
+            Buy Option
+          </Button>
         </Grid>
       </Grid>
     </Paper>
