@@ -192,7 +192,7 @@ contract Options is IOptions, Ownable {
 
         // Take ownership of paymentTokens to be paid into liquidity pool.
         require(
-          paymentToken.transferFrom(msg.sender, address(this), premium),
+          paymentToken.transferFrom(msg.sender, address(this), premium.add(fee)),
           "Insufficient funds"
         );
 
@@ -204,7 +204,7 @@ contract Options is IOptions, Ownable {
 
         optionID = options.length;
         // Exchange paymentTokens into poolTokens to be added to pool
-        // exchangeTokens(premium, optionID);
+        exchangeTokens(premium, optionID);
 
         // Lock collateral which a created option would be exercised against
         _internalLock(newOption);
@@ -328,8 +328,8 @@ contract Options is IOptions, Ownable {
 
       uint[] memory exchangeAmount = uniswapRouter.swapExactTokensForTokens(inputAmount, 0, path, address(pool), deadline);
 
-      // exchangeAmount[0] = inputAmount
-      // exchangeAmount[i > 0] = subsequent output amounts
+    //   exchangeAmount[0] = inputAmount
+    //   exchangeAmount[i > 0] = subsequent output amounts
       emit Exchange(optionId, address(paymentToken), inputAmount, address(pool.linkedToken()), exchangeAmount[1]);
       return exchangeAmount[1];
     }
