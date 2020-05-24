@@ -181,14 +181,15 @@ contract Options is IOptions, Ownable {
       * @return optionID A uint object representing the ID number of the created option.
       */
     function create(uint duration, uint amount, uint strikePrice, OptionType optionTypeInput) public override returns (uint optionID) {
-        (uint256 fee, uint256 premium) = calculateFees(duration, amount, strikePrice, optionTypeInput);
+        require(amount > 0, 'Amount is too small');
 
+        (uint256 fee, uint256 premium) = calculateFees(duration, amount, strikePrice, optionTypeInput);
         uint strikeAmount = (strikePrice.mul(amount)).div(priceDecimals);
 
-        require(strikeAmount > 0,"Amount is too small");
-        require(fee < premium,  "Premium is too small");
+        require(fee < premium, "Premium is too small");
         require(duration >= minDuration, "Duration is too short");
         require(duration <= maxDuration, "Duration is too long");
+        require(strikeAmount > 0, "Strike amount is too small");
 
         // Take ownership of paymentTokens to be paid into liquidity pool.
         require(
