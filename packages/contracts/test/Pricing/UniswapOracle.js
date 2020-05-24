@@ -2,17 +2,17 @@ const { use, expect } = require('chai');
 const { Interface } = require('ethers/utils');
 const {
     solidity,
-    MockProvider,
     createFixtureLoader,
 } = require('ethereum-waffle');
 
-const Options = require('../../build/Options.json');
+const Options = require('../../artifacts/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 
+const { provider } = waffle;
+
 use(solidity);
 
-const provider = new MockProvider({ gasLimit: 9999999 });
 const [liquidityProvider, optionsBuyer] = provider.getWallets();
 const OptionsInterface = new Interface(Options.abi);
 
@@ -21,7 +21,7 @@ const loadFixture = createFixtureLoader(provider, [
     optionsBuyer,
 ]);
 
-describe.skip('Uniswap Price oracle', async () => {
+describe('Uniswap Price oracle', async () => {
     let oracle;
     let paymentToken;
     let poolToken;

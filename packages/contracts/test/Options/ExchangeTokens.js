@@ -7,14 +7,16 @@ const {
 const { bigNumberify, Interface } = require('ethers/utils');
 const { generalTestFixture } = require('../helpers/fixtures');
 
-const Options = require('../../build/Options.json');
+const Options = require('../../artifacts/Options.json');
 const { VALID_DURATION } = require('../helpers/constants');
 
 const { contextForOptionHasActivated } = require('../helpers/contexts');
 
+const { provider } = waffle;
+
 use(solidity);
 
-describe.skip('Exchange token, via Uniswap', async () => {
+describe('Exchange token, via Uniswap', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;
@@ -22,7 +24,6 @@ describe.skip('Exchange token, via Uniswap', async () => {
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
 
-    const provider = new MockProvider({ gasLimit: 9999999 });
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
 
     const loadFixture = createFixtureLoader(provider, [
@@ -52,9 +53,9 @@ describe.skip('Exchange token, via Uniswap', async () => {
     });
 
     describe('buyOption', async () => {
-        it('should exchange tokens when option is created', async () => {
+        it.skip('should exchange tokens when option is created', async () => {
             const optionValue = 100;
-            const premium = 10; // amount being swapped
+            const premium = 10; // TODO: calculate offchain
             const duration = VALID_DURATION.asSeconds();
             const optionId = bigNumberify(0);
 

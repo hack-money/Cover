@@ -7,13 +7,13 @@ const UniswapV2Factory = require('@uniswap/v2-core/build/UniswapV2Factory.json')
 const UniswapV2Router01 = require('@uniswap/v2-periphery/build/UniswapV2Router01.json');
 const UniswapV2Oracle = require('@uniswap/v2-periphery/build/ExampleOracleSimple.json');
 const WETH9 = require('@uniswap/v2-periphery/build/WETH9.json');
-const ERC20Mintable = require('../../build/ERC20Mintable.json');
+const ERC20Mintable = require('../../artifacts/ERC20Mintable.json');
 
-const Options = require('../../build/Options.json');
-const OptionsFactory = require('../../build/OptionsFactory.json');
+const Options = require('../../artifacts/Options.json');
+const OptionsFactory = require('../../artifacts/OptionsFactory.json');
 
-const LiquidityPool = require('../../build/LiquidityPool.json');
-const LiquidityPoolFactory = require('../../build/LiquidityPoolFactory.json');
+const LiquidityPool = require('../../artifacts/LiquidityPool.json');
+const LiquidityPoolFactory = require('../../artifacts/LiquidityPoolFactory.json');
 
 const { expandTo18Decimals } = require('./utilities');
 

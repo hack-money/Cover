@@ -13,14 +13,14 @@
   },
   "homepage": "https://github.com/hack-money/hack#readme",
   "scripts": {
-    "build": "waffle .waffle.json",
+    "build": "npx compile buidler",
     "compile": "buidler compile",
     "commit": "git-cz",
     "clean": "buidler clean",
     "deploy": "buidler run scripts/deploy.js",
     "export": "buidler run scripts/export.js",
     "has:changed": "bash ../monorepo-scripts/ci/hasChanged.sh contracts",
-    "test": "waffle .waffle.json && mocha test/**/*.js --timeout 1000000",
+    "test": "npx buidler test",
     "lint:js": "eslint --config .eslintrc.js ./test ./scripts",
     "lint:sol": "solhint \"contracts/**/*.sol\""
   },

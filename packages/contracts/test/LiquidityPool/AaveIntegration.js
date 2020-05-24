@@ -3,7 +3,7 @@ const { ethers } = require('@nomiclabs/buidler');
 const { solidity, deployContract } = require('ethereum-waffle');
 const moneyLegoERC20 = require('@studydefi/money-legos/erc20');
 
-const LiquidityPool = require('../../build/LiquidityPool.json');
+const LiquidityPool = require('../../artifacts/LiquidityPool.json');
 const { startChain } = require('../helpers/startChain');
 
 use(solidity);

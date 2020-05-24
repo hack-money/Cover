@@ -1,8 +1,10 @@
 const { use, expect } = require('chai');
-const { deployContract, solidity, MockProvider } = require('ethereum-waffle');
+const { deployContract, solidity } = require('ethereum-waffle');
 
-const Pricing = require('../../build/PricingTest.json');
+const Pricing = require('../../artifacts/PricingTest.json');
 const { calculateExtrinsicValue, calcPremiumOffChain } = require('./helpers');
+
+const { provider } = waffle;
 
 use(solidity);
 
@@ -10,7 +12,6 @@ const priceDecimals = 1e8;
 
 describe('Pricing utilities', async () => {
     let pricingContract;
-    const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet] = provider.getWallets();
 
     beforeEach(async () => {

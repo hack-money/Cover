@@ -5,6 +5,7 @@ require('dotenv').config({ path: '.env.development' });
 
 usePlugin('@nomiclabs/buidler-waffle');
 
+
 module.exports = {
     solc: {
         version: '0.6.6',
@@ -12,7 +13,6 @@ module.exports = {
             enabled: true,
             runs: 200,
         },
-        // evmVersion: "istanbul",
     },
     mocha: {
         bail: true,
@@ -20,6 +20,9 @@ module.exports = {
         reporter: 'spec',
     },
     networks: {
+        buidlerevm: {
+            gas: 9900000,
+        },
         ropsten: {
             url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
             chainId: 3,
@@ -28,6 +31,10 @@ module.exports = {
             // gas: 5500000,
             gasPrice: 10000000000,
         },
+        buidlerevm: {
+            gas: 20000000,
+            blockGasLimit: 20000000,
+        }
     },
     etherscan: {
         url: 'https://api-rinkeby.etherscan.io/api',

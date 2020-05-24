@@ -1,7 +1,6 @@
 const { use, expect } = require('chai');
 const {
     solidity,
-    MockProvider,
     createFixtureLoader,
 } = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
@@ -13,8 +12,9 @@ const {
     ACTIVATION_DELAY,
 } = require('../helpers/constants');
 
-const Options = require('../../build/Options.json');
+const Options = require('../../artifacts/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
+const { calcPremiumOffChain } = require('../Pricing/helpers');
 
 const {
     contextForSpecificTime,
@@ -22,9 +22,11 @@ const {
     contextForOptionHasExpired,
 } = require('../helpers/contexts');
 
+const { provider } = waffle;
+
 use(solidity);
 
-describe.skip('Options functionality', async () => {
+describe('Options functionality', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;
@@ -32,7 +34,6 @@ describe.skip('Options functionality', async () => {
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
 
-    const provider = new MockProvider({ gasLimit: 9999999 });
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
     const OptionsInterface = new Interface(Options.abi);
 
@@ -127,7 +128,8 @@ describe.skip('Options functionality', async () => {
             expect(expectedExpiration).to.equal(option.expirationTime);
         });
 
-        it('emits a Create event', async () => {
+        it.skip('emits a Create event', async () => {
+
             await expect(
                 optionsContract.createATM(VALID_DURATION.asSeconds(), 20, 1)
             )
