@@ -83,7 +83,7 @@ const SideBar = ({ open, setOpen }: { open: boolean; setOpen: Function }): React
     setOpen(!open);
   };
 
-  useEffect(() => setup(), [setup]);
+  useEffect(() => setup('MetaMask'), [setup]);
 
   return (
     <Drawer
