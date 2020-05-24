@@ -5,7 +5,9 @@ import { SafeMath } from '@openzeppelin/contracts/math/SafeMath.sol';
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
-import { ExampleOracleSimple } from '@uniswap/v2-periphery/contracts/examples/ExampleOracleSimple.sol';
+import { IUniswapV2Factory } from '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
+
+import { IOracleFactory } from './interfaces/IOracleFactory.sol';
 
 import { LiquidityPool } from './LiquidityPool.sol';
 import { ILiquidityPool } from './interfaces/ILiquidityPool.sol';
@@ -34,7 +36,6 @@ contract Options is IOptions, Ownable {
     uint256 constant priceDecimals = 1e8; // number of decimal places in strike price
     uint256 public platformPercentageFee = 10000; // percentage fee = 1%
 
-
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
     IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
 
@@ -48,23 +49,15 @@ contract Options is IOptions, Ownable {
     event Expire (uint indexed optionId);
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
-    event SetUniswapOracle (address indexed uniswapOracle);
     event TokenPrice (address indexed token, uint256 price);
     
-    constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory) public {
+    constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory, IOracleFactory oracleFactory, IUniswapV2Factory uniswapFactory) public {
         pool = liquidityPoolFactory.createPool(poolToken);
-        paymentToken= _paymentToken;
+        paymentToken = _paymentToken;
 
-        initialiseUniswap();
-    }
-
-    function initialiseUniswap() internal {
-        // ropsten addresses
+        // Initialise Uniswap with Ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
-
-        // TODO: deploy and get address. Oracle has to have been setup and established for a 
-        // particular token pair e.g. DAI:USDC
-        uniswapOracle = IUniswapOracle(0x01);
+        uniswapOracle = oracleFactory.createOracle(address(uniswapFactory), address(pool.linkedToken()), address(paymentToken));
     }
 
     /////////////////// GETTERS AND SETTERS ///////////////////
