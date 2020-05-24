@@ -16,6 +16,9 @@ const OptionsFactory = require('../../build/OptionsFactory.json');
 const LiquidityPool = require('../../build/LiquidityPool.json');
 const LiquidityPoolFactory = require('../../build/LiquidityPoolFactory.json');
 
+const Oracle = require('../../build/ExampleOracleSimple.json');
+const OracleFactory = require('../../build/OracleFactory.json');
+
 const { expandTo18Decimals } = require('./utilities');
 
 const overrides = {
@@ -113,16 +116,40 @@ async function liquidityPoolFactoryFixture(provider, [wallet]) {
     return { liquidityPoolFactory };
 }
 
+async function oracleFactoryFixture(provider, [wallet]) {
+    const oracleFactory = await deployContract(
+        wallet,
+        OracleFactory,
+        [],
+        overrides
+    )
+
+    return { oracleFactory };
+}
+
 async function optionFactoryFixture(provider, [wallet]) {
     const { liquidityPoolFactory } = await liquidityPoolFactoryFixture(
         provider,
         [wallet]
     );
-    const { token0, token1, factory } = await v2Fixture(provider, [wallet]);
+
+    const { token0, token1, factory, pair } = await v2Fixture(provider, [wallet]);
+    
+    // Add liquidity to Uniswap
+    const token0Amount = expandTo18Decimals(50);
+    const token1Amount = expandTo18Decimals(100);
+
+    await token0.transfer(pair.address, token0Amount);
+    await token1.transfer(pair.address, token1Amount);
+    await pair.mint(wallet.address);
+        
+    const { oracleFactory } = await oracleFactoryFixture(
+        provider, [wallet]
+    );
     const optionsFactory = await deployContract(
         wallet,
         OptionsFactory,
-        [factory.address, liquidityPoolFactory.address],
+        [factory.address, liquidityPoolFactory.address, oracleFactory.address],
         overrides
     );
     return { token0, token1, liquidityPoolFactory, optionsFactory };
@@ -140,13 +167,32 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
         [liquidityProvider]
     );
 
+    const { oracleFactory } = await oracleFactoryFixture(
+        provider,
+        [liquidityProvider]
+    );
+
     const poolToken = token0;
     const paymentToken = token1;
+
+    // Add liquidity to Uniswap
+    const token0Amount = expandTo18Decimals(50);
+    const token1Amount = expandTo18Decimals(100);
+
+    await poolToken.transfer(pair.address, token0Amount);
+    await paymentToken.transfer(pair.address, token1Amount);
+    await pair.mint(liquidityProvider.address);
 
     let optionsContract = await deployContract(
         liquidityProvider,
         Options,
-        [poolToken.address, paymentToken.address, liquidityPoolFactory.address],
+        [
+            poolToken.address,
+            paymentToken.address,
+            liquidityPoolFactory.address,
+            oracleFactory.address,
+            factory.address,
+        ],
         overrides
     );
     await optionsContract.setUniswapRouter(router.address);
@@ -158,21 +204,12 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
         liquidityProvider
     );
 
-    // Add liquidity to Uniswap
-    const token0Amount = expandTo18Decimals(50);
-    const token1Amount = expandTo18Decimals(100);
-
-    await poolToken.transfer(pair.address, token0Amount);
-    await paymentToken.transfer(pair.address, token1Amount);
-    await pair.mint(liquidityProvider.address);
-
-    const oracle = await deployContract(
-        liquidityProvider,
-        UniswapV2Oracle,
-        [factory.address, poolToken.address, paymentToken.address],
-        overrides
+    const oracleAddress = await optionsContract.uniswapOracle();
+    const oracle = new Contract(
+        oracleAddress,
+        Oracle.abi,
+        liquidityProvider
     );
-    await optionsContract.setUniswapOracle(oracle.address);
 
     // liquidityProvider no longer interacts with options contract
     optionsContract = optionsContract.connect(optionsBuyer);
