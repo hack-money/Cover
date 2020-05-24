@@ -4,19 +4,21 @@ const { bigNumberify } = require('ethers/utils');
 const {
     solidity,
     createFixtureLoader,
+    MockProvider,
 } = require('ethereum-waffle');
 const { optionFactoryFixture } = require('../helpers/fixtures');
 
-const Options = require('../../artifacts/Options.json');
+const Options = require('../../build/Options.json');
 
 const { getMarketAddress } = require('../helpers/utilities');
 
-const { provider } = waffle;
 use(solidity);
 
 
 describe('OptionsFactory', () => {
+    const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet, other] = provider.getWallets();
+
     const loadFixture = createFixtureLoader(provider, [wallet, other]);
 
     let factory;

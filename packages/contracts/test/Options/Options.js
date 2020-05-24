@@ -1,8 +1,5 @@
 const { use, expect } = require('chai');
-const {
-    solidity,
-    createFixtureLoader,
-} = require('ethereum-waffle');
+const { solidity, createFixtureLoader, MockProvider } = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
 
 const {
@@ -12,17 +9,17 @@ const {
     ACTIVATION_DELAY,
 } = require('../helpers/constants');
 
-const Options = require('../../artifacts/Options.json');
+const Options = require('../../build/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
-const { calcPremiumOffChain } = require('../Pricing/helpers');
+const { calcPremiumOffChain, calcFeeOffChain } = require('../Pricing/helpers');
 
 const {
     contextForSpecificTime,
     contextForOptionHasActivated,
     contextForOptionHasExpired,
+    contextForOracleActivated,
 } = require('../helpers/contexts');
 
-const { provider } = waffle;
 
 use(solidity);
 
@@ -33,9 +30,11 @@ describe('Options functionality', async () => {
     let optionsContract;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
-
+    
+    const provider = new MockProvider({ gasLimit: 9999999 });
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
     const OptionsInterface = new Interface(Options.abi);
+
 
     const loadFixture = createFixtureLoader(provider, [
         liquidityProvider,
@@ -49,6 +48,7 @@ describe('Options functionality', async () => {
             optionsContract,
             poolToken,
             paymentToken,
+            oracle,
         } = await loadFixture(generalTestFixture));
 
         // Give liquidityProvider tokens to buy deposit into pool
@@ -128,13 +128,58 @@ describe('Options functionality', async () => {
             expect(expectedExpiration).to.equal(option.expirationTime);
         });
 
-        it.skip('emits a Create event', async () => {
+        contextForOracleActivated(provider, () => {
+            it('emits a Create event', async () => {
+                const priceDecimals = 1e8;
+                const duration = VALID_DURATION.asSeconds();
+                const amount = 20;
+                const optionType = 1; // putOption
+                const volatility = await optionsContract.getVolatility();
+                const strikePrice = 103000000;
 
-            await expect(
-                optionsContract.createATM(VALID_DURATION.asSeconds(), 20, 1)
-            )
-                .to.emit(optionsContract, 'Create')
-                .withArgs(0, optionsBuyer.address, 0, 10);
+                await oracle.update();
+                const amountPoolTokenOut = await oracle.consult(
+                    poolToken.address,
+                    amount
+                );
+                const currentPrice =
+                    (amountPoolTokenOut / amount) * priceDecimals;
+
+                const platformFeePercentage = 10000;
+                const expectedFee = calcFeeOffChain(
+                    amount,
+                    platformFeePercentage,
+                ) * (currentPrice / priceDecimals);
+
+                // calculate expected premium offchain
+                const expectedPremium = calcPremiumOffChain(
+                    amount,
+                    currentPrice,
+                    strikePrice,
+                    duration,
+                    volatility,
+                    priceDecimals,
+                    optionType
+                );
+
+                const tx = await optionsContract.createATM(duration, amount, optionType)
+                const receipt = await tx.wait();
+                const eventLogValues = OptionsInterface.parseLog(
+                    receipt.logs[receipt.logs.length - 1]
+                ).values;
+                
+                const recoveredOptionId = eventLogValues.optionId;
+                expect(recoveredOptionId).to.equal(0);
+
+                const recoveredAccount = eventLogValues.account;
+                expect(recoveredAccount).to.equal(optionsBuyer.address);
+
+                const recoveredFee = eventLogValues.fee;
+                expect(recoveredFee).to.equal(expectedFee);
+
+                const recoveredPremium = eventLogValues.premium;
+                expect(recoveredPremium.toNumber().toPrecision(3)).to.equal(expectedPremium.toPrecision(3));
+            });
         });
     });
 

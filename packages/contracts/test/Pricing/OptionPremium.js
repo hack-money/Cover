@@ -3,18 +3,18 @@ const { Interface } = require('ethers/utils');
 const {
     solidity,
     createFixtureLoader,
+    MockProvider,
 } = require('ethereum-waffle');
 
-const Options = require('../../artifacts/Options.json');
+const Options = require('../../build/Options.json');
 const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 const { calcPremiumOffChain } = require('./helpers');
 
-const { provider } = waffle;
 
 use(solidity);
 
-
+const provider = new MockProvider({ gasLimit: 9999999 });
 const [liquidityProvider, optionsBuyer] = provider.getWallets();
 const OptionsInterface = new Interface(Options.abi);
 

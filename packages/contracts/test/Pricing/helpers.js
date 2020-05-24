@@ -59,8 +59,12 @@ function calcPremiumOffChain(
 
     return intrinsicValue + extrinsicValue;
 }
+function calcFeeOffChain(amount, platformFeePercentage) {
+    return amount * (platformFeePercentage / 10000);
+}
 
 module.exports = {
     calcPremiumOffChain,
     calculateExtrinsicValue,
+    calcFeeOffChain,
 };
