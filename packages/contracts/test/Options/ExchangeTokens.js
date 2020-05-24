@@ -40,7 +40,7 @@ describe('Exchange token, via Uniswap', async () => {
             optionsContract,
             poolToken,
             paymentToken,
-            // oracle,
+            oracle,
         } = await loadFixture(generalTestFixture));
 
         // Give liquidityProvider tokens to buy deposit into pool
@@ -55,7 +55,7 @@ describe('Exchange token, via Uniswap', async () => {
             .approve(optionsContract.address, numPaymentTokens);
     });
 
-    describe.skip('buyOption', async () => {
+    describe('buyOption', async () => {
         contextForOracleActivated(provider, () => {
             it('should exchange tokens when option is created', async () => {
                 // setup

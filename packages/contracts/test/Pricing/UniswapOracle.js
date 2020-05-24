@@ -22,7 +22,7 @@ const loadFixture = createFixtureLoader(provider, [
     optionsBuyer,
 ]);
 
-describe.skip('Uniswap Price oracle', async () => {
+describe('Uniswap Price oracle', async () => {
     let oracle;
     let paymentToken;
     let poolToken;

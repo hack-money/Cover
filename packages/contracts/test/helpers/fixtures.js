@@ -116,16 +116,16 @@ async function liquidityPoolFactoryFixture(provider, [wallet]) {
     return { liquidityPoolFactory };
 }
 
-// async function oracleFactoryFixture(provider, [wallet]) {
-//     const oracleFactory = await deployContract(
-//         wallet,
-//         OracleFactory,
-//         [],
-//         overrides
-//     )
+async function oracleFactoryFixture(provider, [wallet]) {
+    const oracleFactory = await deployContract(
+        wallet,
+        OracleFactory,
+        [],
+        overrides
+    )
 
-//     return { oracleFactory };
-// }
+    return { oracleFactory };
+}
 
 async function optionFactoryFixture(provider, [wallet]) {
     const { liquidityPoolFactory } = await liquidityPoolFactoryFixture(
@@ -143,13 +143,13 @@ async function optionFactoryFixture(provider, [wallet]) {
     await token1.transfer(pair.address, token1Amount);
     await pair.mint(wallet.address);
         
-    // const { oracleFactory } = await oracleFactoryFixture(
-    //     provider, [wallet]
-    // );
+    const { oracleFactory } = await oracleFactoryFixture(
+        provider, [wallet]
+    );
     const optionsFactory = await deployContract(
         wallet,
         OptionsFactory,
-        [factory.address, liquidityPoolFactory.address],
+        [factory.address, liquidityPoolFactory.address, oracleFactory.address],
         overrides
     );
     return { token0, token1, liquidityPoolFactory, optionsFactory };
@@ -167,10 +167,10 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
         [liquidityProvider]
     );
 
-    // const { oracleFactory } = await oracleFactoryFixture(
-    //     provider,
-    //     [liquidityProvider]
-    // );
+    const { oracleFactory } = await oracleFactoryFixture(
+        provider,
+        [liquidityProvider]
+    );
 
     const poolToken = token0;
     const paymentToken = token1;
@@ -190,6 +190,8 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
             poolToken.address,
             paymentToken.address,
             liquidityPoolFactory.address,
+            oracleFactory.address,
+            factory.address,
         ],
         overrides
     );
@@ -202,12 +204,12 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
         liquidityProvider
     );
 
-    // const oracleAddress = await optionsContract.uniswapOracle();
-    // const oracle = new Contract(
-    //     oracleAddress,
-    //     Oracle.abi,
-    //     liquidityProvider
-    // );
+    const oracleAddress = await optionsContract.uniswapOracle();
+    const oracle = new Contract(
+        oracleAddress,
+        Oracle.abi,
+        liquidityProvider
+    );
 
     // liquidityProvider no longer interacts with options contract
     optionsContract = optionsContract.connect(optionsBuyer);
@@ -217,7 +219,7 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
         optionsContract,
         poolToken,
         paymentToken,
-        // oracle,
+        oracle,
     };
 }
 

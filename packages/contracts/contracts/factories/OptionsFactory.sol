@@ -12,15 +12,17 @@ contract OptionsFactory is IOptionsFactory {
 
     IUniswapV2Factory uniswapFactory;
     ILiquidityPoolFactory liquidityPoolFactory;
+    IOracleFactory oracleFactory;
 
     mapping(address => mapping(address => address)) public override getMarket;
     address[] public override allMarkets;
 
     event MarketCreated(address indexed poolToken, address indexed paymentToken, address market, uint);
 
-    constructor(IUniswapV2Factory _uniswapFactory, ILiquidityPoolFactory _liquidityPoolFactory) public {
+    constructor(IUniswapV2Factory _uniswapFactory, ILiquidityPoolFactory _liquidityPoolFactory, IOracleFactory _oracleFactory) public {
         uniswapFactory = _uniswapFactory;
         liquidityPoolFactory = _liquidityPoolFactory;
+        oracleFactory = _oracleFactory;
     }
 
     function allMarketsLength() external view override returns (uint) {
@@ -36,7 +38,7 @@ contract OptionsFactory is IOptionsFactory {
 
         // Deploy new options contract
         bytes32 salt = keccak256(abi.encode(poolToken, paymentToken));
-        Options market = new Options{salt: salt}(IERC20(poolToken), IERC20(paymentToken), liquidityPoolFactory);
+        Options market = new Options{salt: salt}(IERC20(poolToken), IERC20(paymentToken), liquidityPoolFactory, oracleFactory, uniswapFactory);
 
         // Store options contract address
         getMarket[poolToken][paymentToken] = address(market);
