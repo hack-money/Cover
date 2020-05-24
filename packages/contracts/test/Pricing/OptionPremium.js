@@ -23,7 +23,7 @@ const loadFixture = createFixtureLoader(provider, [
     optionsBuyer,
 ]);
 
-describe('Option premium', async () => {
+describe.skip('Option premium', async () => {
     let oracle;
     let paymentToken;
     let poolToken;

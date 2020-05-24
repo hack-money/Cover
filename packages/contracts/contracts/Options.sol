@@ -37,7 +37,9 @@ contract Options is IOptions, Ownable {
     uint256 public platformPercentageFee = 10000; // percentage fee = 1%
 
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
-    IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
+    
+    // TODO
+    // IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
 
     uint constant activationDelay = 15 minutes;
     uint256 constant minDuration = 1 days;
@@ -51,13 +53,15 @@ contract Options is IOptions, Ownable {
     event SetUniswapRouter (address indexed uniswapRouter);
     event TokenPrice (address indexed token, uint256 price);
     
-    constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory, IOracleFactory oracleFactory, IUniswapV2Factory uniswapFactory) public {
+    constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory) public {
         pool = liquidityPoolFactory.createPool(poolToken);
         paymentToken = _paymentToken;
 
         // Initialise Uniswap with Ropsten addresses
         uniswapRouter = IUniswapV2Router01(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
-        uniswapOracle = oracleFactory.createOracle(address(uniswapFactory), address(pool.linkedToken()), address(paymentToken));
+
+        // TODO
+        // uniswapOracle = oracleFactory.createOracle(address(uniswapFactory), address(pool.linkedToken()), address(paymentToken));
     }
 
     /////////////////// GETTERS AND SETTERS ///////////////////
@@ -114,11 +118,11 @@ contract Options is IOptions, Ownable {
     * @dev Set the address of the Uniswap price oracle contract. Protected by onlyOwner
     * @param _uniswapOracle - address of the uniswap price oracle contract
      */
-    function setUniswapOracle(address _uniswapOracle) public onlyOwner {
-        require(_uniswapOracle != address(0x0), 'Options: ZERO_ADDRESS');
-        uniswapOracle = IUniswapOracle(_uniswapOracle);
-        emit SetUniswapOracle(address(uniswapOracle));
-    }
+    // function setUniswapOracle(address _uniswapOracle) public onlyOwner {
+    //     require(_uniswapOracle != address(0x0), 'Options: ZERO_ADDRESS');
+    //     uniswapOracle = IUniswapOracle(_uniswapOracle);
+    //     emit SetUniswapOracle(address(uniswapOracle));
+    // }
 
     /**
     * @dev Set the volatility of the option underlying asset. Protected by onlyOwner
@@ -340,9 +344,11 @@ contract Options is IOptions, Ownable {
     */
     function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType optionTypeInput) public override returns (uint256, uint256) {
         // Pool token price in terms of payment token, e.g. 1 DAI = currentPrice USDC
-        uint256 currentPrice = getPoolTokenPrice(amount);
+        // TODO
+        // uint256 currentPrice = getPoolTokenPrice(amount);
 
-        currentPrice = currentPrice.mul(priceDecimals);
+        uint256 currentPrice = 2;
+        // currentPrice = currentPrice.mul(priceDecimals);
         uint256 platformFee = (Pricing.calculatePlatformFee(amount, platformPercentageFee)).mul(currentPrice).div(priceDecimals);
         uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), int(optionTypeInput), priceDecimals);
         return (platformFee, premium);
@@ -354,15 +360,15 @@ contract Options is IOptions, Ownable {
     * @return Number of paymentTokens that would be exchanged if the trade between
     * amount of tokenA, for tokenB were to go ahead
     **/
-    function getPoolTokenPrice(uint256 amount) public returns (uint256) {
-        // TODO: automate the calling of oracle.update() every 24hrs
-        // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
-        uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
+    // function getPoolTokenPrice(uint256 amount) public returns (uint256) {
+    //     // TODO: automate the calling of oracle.update() every 24hrs
+    //     // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
+    //     uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
         
-        // DAI price in terms of USDC
-        uint256 poolTokenPrice = amountPoolTokenOut.div(amount);
+    //     // DAI price in terms of USDC
+    //     uint256 poolTokenPrice = amountPoolTokenOut.div(amount);
         
-        emit TokenPrice(address(pool.linkedToken()), poolTokenPrice);
-        return poolTokenPrice;
-    }
+    //     emit TokenPrice(address(pool.linkedToken()), poolTokenPrice);
+    //     return poolTokenPrice;
+    // }
 }

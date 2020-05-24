@@ -14,21 +14,13 @@ async function main() {
     await liquidityPoolFactory.deployed();
     console.log('Liqudity pool factory deployed to: ', liquidityPoolFactory.address);
 
-    const OracleFactory = await ethers.getContractFactory('OracleFactory');
-    const oracleFactory = await OracleFactory.deploy();
-    await oracleFactory.deployed();
-    console.log('Oracle factory deployed to: ', oracleFactory.address);
 
     const OptionsFactory = await ethers.getContractFactory('OptionsFactory');
-    console.log({ OptionsFactory });
     const optionsFactory = await OptionsFactory.deploy(
         UNISWAP_FACTORY,
         liquidityPoolFactory.address,
-        oracleFactory.address
     );
-    const optionsFactoryReceipt = await optionsFactory.deployed();
-    console.log({ optionsFactoryReceipt });
-    console.log('Options factory deployed to: ', optionsFactory.address);
+    await optionsFactory.deployed();
 
     const result = await optionsFactory.createMarket(DAI, USDC);
     console.log('options market created: ', result);
