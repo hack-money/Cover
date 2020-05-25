@@ -44,6 +44,11 @@ enum OptionType {
   Call,
 }
 
+const getFees = async (optionContract: Contract, amount: string, optionType: OptionType): Promise<Array<any>> => {
+  const strikePrice = await optionContract.getPoolTokenPrice(amount);
+  return optionContract.calculateFees(60 * 30, amount, strikePrice, optionType);
+};
+
 const BuyOptionsPage = (props: any): ReactElement | null => {
   const classes = useStyles();
   const wallet = useWallet();
@@ -76,14 +81,22 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
     getMarketContract();
   }, [wallet, props.factoryAddress, props.poolToken, props.paymentToken]);
 
+  useEffect(() => {
+    if (optionContract) {
+      getFees(optionContract, amount || '1', optionType).then((fees) => {
+        setPremium(fees[0].add(fees[1]).toString());
+      });
+    }
+  }, [optionContract, amount, optionType]);
+
   const approveFunds = (approvalAmount: string): void => {
     const signer = new Web3Provider(wallet.provider).getSigner();
     const token = new Contract(props.paymentToken, IERC20.abi, signer);
     if (optionContract) token.approve(optionContract.address, approvalAmount);
   };
 
-  const purchaseOption = (): void => {
-    if (optionContract) optionContract.createATM(60 * 30, 500000, optionType);
+  const purchaseOption = (purchaseAmount: string): void => {
+    if (optionContract) optionContract.createATM(2 * 86400, purchaseAmount, optionType);
   };
 
   if (!props.paymentToken || !props.poolToken) return null;
@@ -115,12 +128,12 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
       </Grid>
       <Grid item container spacing={3}>
         <Grid item>
-          <Button variant="contained" color="primary" onClick={(): void => approveFunds('50000000')}>
+          <Button variant="contained" color="primary" onClick={(): void => approveFunds(amount)}>
             Approve
           </Button>
         </Grid>
         <Grid item>
-          <Button variant="contained" color="primary" onClick={(): void => purchaseOption()}>
+          <Button variant="contained" color="primary" onClick={(): void => purchaseOption(amount)}>
             Buy Option
           </Button>
         </Grid>

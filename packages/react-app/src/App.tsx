@@ -47,13 +47,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const daiAddress = '0xf80a32a835f79d7787e8a8ee5721d0feafd78108';
-const usdcAddress = '0x851def71f0e6a903375c1e536bd9ff1684bad802';
+const busdAddress = '0xfa6adcff6a90c11f31bc9bb59ec0a6efb38381c6';
 
 const App = (): ReactElement => {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const [poolToken, setPoolToken] = useState<Address>(daiAddress);
-  const [paymentToken, setPaymentToken] = useState<Address>(usdcAddress);
+  const [paymentToken, setPaymentToken] = useState<Address>(busdAddress);
 
   const factoryAddress = process.env.REACT_APP_OPTIONS_FACTORY_ADDRESS;
 

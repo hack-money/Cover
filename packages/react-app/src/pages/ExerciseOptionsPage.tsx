@@ -1,10 +1,18 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 
 import { ethers, Contract } from 'ethers';
 import { Web3Provider } from 'ethers/providers';
+import Options from '../abis/Options.json';
+import IERC20 from '../abis/IERC20.json';
 
 import { useAddress, useWallet } from '../contexts/OnboardContext';
 
@@ -37,6 +45,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const getOptions = async (provider: Web3Provider, optionMarket: Contract, filter: object) => {
+  const logs = await provider.getLogs(filter);
+  const iface = new ethers.utils.Interface(Options.abi);
+
+  return Promise.all(
+    logs.map(
+      async (log: any): Promise<any> => {
+        const optionId = iface.parseLog(log).values.optionId.toString();
+        return { optionId, ...(await optionMarket.options(optionId)) };
+      },
+    ),
+  );
+};
+
 const ExerciseOptionsPage = (props: any): ReactElement => {
   const classes = useStyles();
   const userAddress = useAddress();
@@ -51,20 +73,28 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
         const provider = new Web3Provider(wallet.provider);
         try {
           const optionMarket = await getOptionContract(
-            provider,
+            provider.getSigner(),
             props.factoryAddress,
             props.poolToken,
             props.paymentToken,
           );
+          setOptionContract(optionMarket);
 
           const filter = {
             address: optionMarket.address,
             fromBlock: 7957620,
             toBlock: 'latest',
-            topics: [ethers.utils.id('Create(uint indexed,address indexed,uint,uint)')],
+            topics: [ethers.utils.id('Create(uint256,address,uint256,uint256)')],
           };
           console.log('finding logs');
-          provider.getLogs(filter).then(console.log);
+
+          getOptions(provider, optionMarket, filter).then((options) =>
+            setOptions(
+              options.filter((option: any) => {
+                return option.state === 0;
+              }),
+            ),
+          );
         } catch (e) {
           console.error(e);
           setOptionContract(null);
@@ -73,11 +103,55 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
     }
     getPoolContract();
   }, [wallet, userAddress, props.factoryAddress, props.poolToken, props.paymentToken]);
+  console.log(options);
+
+  const approveFunds = (amount: string): void => {
+    const signer = new Web3Provider(wallet.provider).getSigner();
+    const token = new Contract(props.paymentToken, IERC20.abi, signer);
+    if (optionContract) token.approve(optionContract.address, amount);
+  };
+
+  const exerciseOption = (optionId: string): void => {
+    if (optionContract) optionContract.exercise(optionId);
+  };
 
   return (
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="row" justify="space-around" spacing={3}>
-        {options.length ? 'There are options in the console' : 'No options found'}
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell align="right">OptionId</TableCell>
+              <TableCell align="right">Start time</TableCell>
+              <TableCell align="right">Expiry time</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {options.length &&
+              options.map((option: any) => {
+                return (
+                  <TableRow key={option.optionId}>
+                    <TableCell align="right">{option.optionId}</TableCell>
+                    <TableCell align="right">{option.startTime.toString()}</TableCell>
+                    <TableCell align="right">{option.expirationTime.toString()}</TableCell>
+                    <TableCell align="right">
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={(): void => approveFunds(option.amount.mul(10).toString())}
+                      >
+                        Approve
+                      </Button>
+                      <Button variant="contained" color="primary" onClick={(): void => exerciseOption(option.optionId)}>
+                        Exercise Option
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+          </TableBody>
+        </Table>
       </Grid>
     </Paper>
   );
