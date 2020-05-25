@@ -36,7 +36,7 @@ library Pricing {
             duration,
             volatility
         );
-        return intrinsicValue.add(extrinsicValue).div(priceDecimals);
+        return intrinsicValue.add(extrinsicValue).div(priceDecimals).div(100);
     }
 
     /**

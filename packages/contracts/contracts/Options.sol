@@ -34,7 +34,7 @@ contract Options is IOptions, Ownable {
     OptionType public optionType; // Does this contract sell put or call options?
     
     uint256 constant priceDecimals = 1e8; // number of decimal places in strike price
-    uint256 public platformPercentageFee = 10000; // percentage fee = 1%
+    uint256 public platformPercentageFee = 100; // percentage fee = 1%
 
     IUniswapV2Router01 public override uniswapRouter; // UniswapV2Router01 used to exchange tokens
     IUniswapOracle public uniswapOracle; // Uniswap oracle for price updates
@@ -42,14 +42,13 @@ contract Options is IOptions, Ownable {
     uint constant activationDelay = 15 minutes;
     uint256 constant minDuration = 1 days;
     uint256 constant maxDuration = 8 weeks;
-    uint256 public volatility = 6;
+    uint256 public volatility = 2;
 
     event Create (uint indexed optionId, address indexed account, uint fee, uint premium);
     event Exercise (uint indexed optionId, uint exchangeAmount);
     event Expire (uint indexed optionId);
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
-    event TokenPrice (address indexed token, uint256 price);
     
     constructor(IERC20 poolToken, IERC20 _paymentToken, ILiquidityPoolFactory liquidityPoolFactory, IOracleFactory oracleFactory, IUniswapV2Factory uniswapFactory) public {
         pool = liquidityPoolFactory.createPool(poolToken);
@@ -338,7 +337,7 @@ contract Options is IOptions, Ownable {
     * @param optionTypeInput Bool determining whether the option is a put (true) or a call (false)
     * @return platformFee and premium - not multiplied by priceDecimals
     */
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType optionTypeInput) public override returns (uint256, uint256) {
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType optionTypeInput) public view override returns (uint256, uint256) {
         // Pool token price in terms of payment token, e.g. 1 DAI = currentPrice USDC
         uint256 currentPrice = getPoolTokenPrice(amount);
 
@@ -354,15 +353,13 @@ contract Options is IOptions, Ownable {
     * @return Number of paymentTokens that would be exchanged if the trade between
     * amount of tokenA, for tokenB were to go ahead
     **/
-    function getPoolTokenPrice(uint256 amount) public returns (uint256) {
+    function getPoolTokenPrice(uint256 amount) view public returns (uint256) {
         // TODO: automate the calling of oracle.update() every 24hrs
         // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
         uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
         
         // DAI price in terms of USDC
         uint256 poolTokenPrice = amountPoolTokenOut.div(amount);
-        
-        emit TokenPrice(address(pool.linkedToken()), poolTokenPrice);
         return poolTokenPrice;
     }
 }

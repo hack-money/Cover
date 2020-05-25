@@ -16,7 +16,6 @@ interface IOptions {
     event Exchange (uint indexed optionId, address paymentToken, uint inputAmount, address poolToken, uint outputAmount);
     event SetUniswapRouter (address indexed uniswapRouter);
     event SetUniswapOracle (address indexed uniswapOracle);
-    event TokenPrice (address indexed token, uint256 price);
     
     function pool() external view returns (ILiquidityPool);
     function poolToken() external view returns (IERC20);
@@ -33,7 +32,7 @@ interface IOptions {
 
     function setPlatformPercentageFee(uint256 _platformPercentageFee) external;
     
-    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType) external returns (uint256, uint256);
+    function calculateFees(uint256 duration, uint256 amount, uint256 strikePrice, OptionType) view external returns (uint256, uint256);
 
     function createATM(uint duration, uint amount, OptionType optionType) external returns (uint optionID);
     function create(uint duration, uint amount, uint strikePrice, OptionType optionType) external returns (uint optionID);

@@ -4,7 +4,7 @@ const { ethers } = require('@nomiclabs/buidler');
 // Ropsten addresses
 const UNISWAP_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
 const DAI = '0xf80a32a835f79d7787e8a8ee5721d0feafd78108';
-const USDC = '0x851def71f0e6a903375c1e536bd9ff1684bad802';
+const BUSD = '0xfa6adcff6a90c11f31bc9bb59ec0a6efb38381c6';
 
 async function main() {
     const LiquidityPoolFactory = await ethers.getContractFactory(
@@ -20,7 +20,6 @@ async function main() {
     console.log('Oracle factory deployed to: ', oracleFactory.address);
 
     const OptionsFactory = await ethers.getContractFactory('OptionsFactory');
-    console.log({ OptionsFactory });
     const optionsFactory = await OptionsFactory.deploy(
         UNISWAP_FACTORY,
         liquidityPoolFactory.address,
@@ -30,7 +29,7 @@ async function main() {
     console.log({ optionsFactoryReceipt });
     console.log('Options factory deployed to: ', optionsFactory.address);
 
-    const result = await optionsFactory.createMarket(DAI, USDC);
+    const result = await optionsFactory.createMarket(DAI, BUSD);
     console.log('options market created: ', result);
 }
 

@@ -65,13 +65,7 @@ describe('Uniswap Price oracle', async () => {
         contextForOracleActivated(provider, () => {
             it('should return correct price when calling Options.getPoolTokenPrice()', async () => {
                 const amount = 100;
-                const tx = await optionsContract.getPoolTokenPrice(amount);
-                const receipt = await tx.wait();
-
-                const { price } = OptionsInterface.parseLog(
-                    receipt.logs[receipt.logs.length - 1]
-                ).values;
-
+                const price = await optionsContract.getPoolTokenPrice(amount);
                 const amountPoolTokenOut = await oracle.consult(
                     poolToken.address,
                     amount

@@ -14,8 +14,6 @@ import '../../interfaces/IUniswapOracle.sol';
 contract ExampleOracleSimple is IUniswapOracle {
     using FixedPoint for *;
 
-    uint public constant PERIOD = 24 hours;
-
     IUniswapV2Pair immutable pair;
     address public immutable token0;
     address public immutable token1;
@@ -43,9 +41,6 @@ contract ExampleOracleSimple is IUniswapOracle {
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
             UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
-
-        // ensure that at least one full period has passed since the last update
-        require(timeElapsed >= PERIOD, 'ExampleOracleSimple: PERIOD_NOT_ELAPSED');
 
         // overflow is desired, casting never truncates
         // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
