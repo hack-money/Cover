@@ -15,5 +15,5 @@ struct Option {
   uint amount;
   uint startTime;
   uint expirationTime;
-
+  uint premium;
 }

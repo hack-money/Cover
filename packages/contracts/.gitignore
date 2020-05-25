@@ -2,4 +2,5 @@
 cache
 artifacts
 .env
+.env.development
 

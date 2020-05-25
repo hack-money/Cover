@@ -9,26 +9,29 @@ const { generalTestFixture } = require('../helpers/fixtures');
 
 const Options = require('../../build/Options.json');
 const { VALID_DURATION } = require('../helpers/constants');
+const {calcFeeOffChain, calcPremiumOffChain } = require('../Pricing/helpers');
+const { contextForOptionHasActivated, contextForOracleActivated } = require('../helpers/contexts');
 
-const { contextForOptionHasActivated } = require('../helpers/contexts');
 
 use(solidity);
 
-describe('Uniswap integration', async () => {
+describe('Exchange token, via Uniswap', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;
     let optionsContract;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
-
     const provider = new MockProvider({ gasLimit: 9999999 });
+
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
 
     const loadFixture = createFixtureLoader(provider, [
         liquidityProvider,
         optionsBuyer,
     ]);
+
+    const OptionsInterface = new Interface(Options.abi);
 
     beforeEach(async () => {
         // Deploy and link together Options contract, liquidity pool and Uniswap. Extract relevant ERC20s
@@ -37,6 +40,7 @@ describe('Uniswap integration', async () => {
             optionsContract,
             poolToken,
             paymentToken,
+            oracle,
         } = await loadFixture(generalTestFixture));
 
         // Give liquidityProvider tokens to buy deposit into pool
@@ -52,34 +56,81 @@ describe('Uniswap integration', async () => {
     });
 
     describe('buyOption', async () => {
-        it('should exchange tokens when option is created', async () => {
-            const optionValue = 100;
-            const premium = 10; // amount being swapped
-            const duration = VALID_DURATION.asSeconds();
-            const optionId = bigNumberify(0);
+        contextForOracleActivated(provider, () => {
+            it('should exchange tokens when option is created', async () => {
+                // setup
+                const priceDecimals = 1e8;
+                const optionId = bigNumberify(0);
+                const duration = VALID_DURATION.asSeconds();
+                const amount = 20;
+                const optionType = 1; // putOption
+                const volatility = await optionsContract.getVolatility();
+                const strikePrice = 103000000;
 
-            const initialPoolBalance = await liquidityPool.getPoolERC20Balance();
-
-            await expect(optionsContract.createATM(duration, optionValue, 1))
-                .to.emit(optionsContract, 'Exchange')
-                .withArgs(
-                    optionId,
-                    paymentToken.address,
-                    premium,
+                await oracle.update();
+                const amountOutForAmount = await oracle.consult(
                     poolToken.address,
-                    4 // TODO: calculate generally
+                    amount
                 );
-            const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
-            expect(finalPoolBalance).to.equal(
-                initialPoolBalance.add(bigNumberify(4))
-            );
+                const currentPrice =
+                    (amountOutForAmount / amount) * priceDecimals;
+
+                // calculate fees + premiums
+                const platformFeePercentage = 10000;
+                const expectedFee =
+                    calcFeeOffChain(amount, platformFeePercentage) *
+                    (currentPrice / priceDecimals);
+
+                // calculate expected premium offchain
+                const expectedPremium = calcPremiumOffChain(
+                    amount,
+                    currentPrice,
+                    strikePrice,
+                    duration,
+                    volatility,
+                    priceDecimals,
+                    optionType
+                );
+
+                // expected exchangeToken variables
+                const amountOutForPremium = await oracle.consult(
+                    paymentToken.address,
+                    parseInt(expectedPremium)
+                );
+
+                const initialPoolBalance = await liquidityPool.getPoolERC20Balance();
+
+                const tx = await optionsContract.createATM(duration, amount, 1);
+                const receipt = await tx.wait();
+                const eventLog = OptionsInterface.parseLog(
+                    receipt.logs[receipt.logs.length - 2]
+                );
+
+                const recoveredOptionId = eventLog.values.optionId;
+                const recoveredPaymentToken = eventLog.values.paymentToken;
+                const recoveredInputAmount = eventLog.values.inputAmount;
+                const recoveredPoolToken = eventLog.values.poolToken;
+                const recoveredOutputAmount = eventLog.values.outputAmount;
+
+                expect(recoveredOptionId).to.equal(optionId);
+                expect(recoveredPaymentToken).to.equal(paymentToken.address);
+                expect(recoveredPoolToken).to.equal(poolToken.address);
+                expect(recoveredInputAmount.toNumber().toPrecision(3)).to.equal(expectedPremium.toPrecision(3));
+                expect(recoveredOutputAmount.toNumber().toPrecision(1)).to.equal(amountOutForPremium.toNumber().toPrecision(1));
+
+                const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
+
+                // TODO: work out how to predict
+                expect(finalPoolBalance).to.equal(
+                    initialPoolBalance.add(bigNumberify(recoveredOutputAmount))
+                );
+            });
         });
     });
 
     describe('exerciseOption', async () => {
         let optionID;
         let optionValue;
-        const OptionsInterface = new Interface(Options.abi);
 
         beforeEach(async () => {
             optionValue = 100;
@@ -103,6 +154,7 @@ describe('Uniswap integration', async () => {
                     ,
                     strikeAmount,
                     amount,
+                    ,
                     ,
                     ,
                 ] = await optionsContract.getOptionInfo(optionID);

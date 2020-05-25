@@ -1,6 +1,6 @@
 const { use, expect } = require('chai');
 const { ethers } = require('@nomiclabs/buidler');
-const { solidity, deployContract } = require('ethereum-waffle');
+const { solidity, deployContract, MockProvider } = require('ethereum-waffle');
 const moneyLegoERC20 = require('@studydefi/money-legos/erc20');
 
 const LiquidityPool = require('../../build/LiquidityPool.json');
@@ -8,7 +8,7 @@ const { startChain } = require('../helpers/startChain');
 
 use(solidity);
 
-describe('Aave integration - liquidity pool', async () => {
+describe.skip('Aave integration - liquidity pool', async () => {
     let liquidityPool;
     let dai;
     let user;

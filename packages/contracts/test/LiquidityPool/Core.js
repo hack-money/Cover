@@ -1,8 +1,8 @@
 const { use, expect } = require('chai');
 const {
     solidity,
-    MockProvider,
     createFixtureLoader,
+    MockProvider,
 } = require('ethereum-waffle');
 const { bigNumberify } = require('ethers/utils');
 
@@ -16,6 +16,7 @@ describe('Core liquidity pool functionality', async () => {
     let liquidityPool;
     const numPoolTokens = 20;
     const provider = new MockProvider({ gasLimit: 9999999 });
+
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
 
     const loadFixture = createFixtureLoader(provider, [
