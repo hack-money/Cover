@@ -88,9 +88,9 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
           };
           console.log('finding logs');
 
-          getOptions(provider, optionMarket, filter).then((options) =>
+          getOptions(provider, optionMarket, filter).then((newoptions) =>
             setOptions(
-              options.filter((option: any) => {
+              newoptions.filter((option: any) => {
                 return option.state === 0;
               }),
             ),
