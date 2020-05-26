@@ -1,5 +1,7 @@
 __Warning: This is a hackathon project, use at own risk. It is likely very possible to lose funds__
 
+<p align="center"><img src="https://github.com/hack-money/Cover/blob/master/logo.png?raw=true" width="280px"/></p>
+
 # Cover
 A protective DAI options market, motivated by the recent Black Thursday events. It allows users, likely CDP holders, to ahead of time to purchase the right to buy DAI, for a particular price in another stablecoin. 
 
