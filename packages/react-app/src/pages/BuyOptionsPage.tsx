@@ -104,7 +104,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="column" alignContent="center" alignItems="center" spacing={3}>
         <Grid item>
-          {`I want to be able to `}
+          {`Option to: `}
           <TextField select value={optionType} onChange={(event: any): void => setOptionType(event.target.value)}>
             <MenuItem key={0} value={OptionType.Call}>
               Buy

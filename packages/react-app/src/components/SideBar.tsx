@@ -71,7 +71,6 @@ const links = [
   { text: 'Deposit', icon: <AddIcon />, url: '/deposit' },
   { text: 'Buy Options', icon: <ShoppingCartIcon />, url: '/options/buy' },
   { text: 'Exercise Options', icon: <SwapHorizIcon />, url: '/options/exercise' },
-  { text: 'FAQ', icon: <HelpIcon />, url: '/faq' },
 ];
 
 const SideBar = ({ open, setOpen }: { open: boolean; setOpen: Function }): ReactElement => {

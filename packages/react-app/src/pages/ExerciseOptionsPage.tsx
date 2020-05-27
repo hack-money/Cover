@@ -103,7 +103,6 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
     }
     getPoolContract();
   }, [wallet, userAddress, props.factoryAddress, props.poolToken, props.paymentToken]);
-  console.log(options);
 
   const approveFunds = (amount: string): void => {
     const signer = new Web3Provider(wallet.provider).getSigner();
@@ -133,8 +132,8 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
                 return (
                   <TableRow key={option.optionId}>
                     <TableCell align="right">{option.optionId}</TableCell>
-                    <TableCell align="right">{option.startTime.toString()}</TableCell>
-                    <TableCell align="right">{option.expirationTime.toString()}</TableCell>
+                    <TableCell align="right">{new Date(option.startTime*1000).toString()}</TableCell>
+                    <TableCell align="right">{new Date(option.expirationTime*1000).toString()}</TableCell>
                     <TableCell align="right">
                       <Button
                         variant="contained"
@@ -143,7 +142,10 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
                       >
                         Approve
                       </Button>
-                      <Button variant="contained" color="primary" onClick={(): void => exerciseOption(option.optionId)}>
+                      <Button variant="contained" color="primary" onClick={(): void => {
+                          console.log('optionId: ', option.optionId);
+                          return exerciseOption(option.optionId);
+                        }}>
                         Exercise Option
                       </Button>
                     </TableCell>
