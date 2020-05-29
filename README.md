@@ -9,12 +9,12 @@ A protective DAI options market, motivated by the recent Black Thursday events. 
 
 This means that if the price of DAI rises away from the peg during a Black Thursday'esque liquidity crunch, CDP owners are able to purchase DAI at a lower than inflated price and deleverage more cheaply. 
 
-We start with DAI:BUSD options.
+We start with and have deployed a Ropsten DAI:BUSD options market.
 
 ## Extensibility
-In addition, the protocol has been generalised such that it is possible to deploy any options market between two assets; for which a pair exists on Uniswap. This can be done by any user through the UI, allowing this to be extended beyond protective DAI options.
+In addition, the protocol has been generalised such that it is possible to deploy any options market between two assets; for which a pair exists on Uniswap. This can be done by any user through the UI, allowing this to be extended beyond protective DAI options. 
 
-This is achieved through a system of factory contracts that deploy the `Options` contracts, the Uniswap oracle and the liqudity pool. This allows anyone to call `OptionsFactory.createMarket(token0, token1)` and deploy the option market they require.
+A system of factory contracts are used for this purpose.
 
 ## How it works
 ### Option seller
@@ -34,7 +34,12 @@ Option premiums are currently calculated using a Black-Scholes approximation tha
 - Graph protocol: built a subgraph to index on-chain option activity and present to the front-end
 - ENS + IPFS: used to deploy and host the web app
 
-## Inspiration
-On-chain options are an exciting, evolving space with lots of innovation. We drew inspiration from various teams including Primitive Finance, Hegic and Opyn. 
+## Areas for improvement
+- Complete the `Buy Options` page of the UI: does not currently expose the various option variables (strike price, expiration date etc) and allow a user to adjust to their needs (ran out of time to add this to the UI)
+- Thoroughly benchmark premium pricing results
+- More accurately determine the volatility of the underlying asset + potentially find an on-chain dynamic source
+
+## Acknowledgements and references
+On-chain options are an exciting, evolving space with lots of innovation. In building the hack, we drew inspiration from several teams including Primitive Finance, Hegic, Opyn and for individual option markets we use a liquidity pool model similar to Hegic.
 
 
