@@ -11,7 +11,7 @@ import OptionRow from './OptionRow';
 
 import IERC20 from '../../abis/IERC20.json';
 import { useWalletProvider } from '../../contexts/OnboardContext';
-import { Address } from '../../types/types';
+import { Address, Option } from '../../types/types';
 
 const OptionTable = ({
   paymentToken,
@@ -20,7 +20,7 @@ const OptionTable = ({
 }: {
   paymentToken: Address;
   optionContract: Contract;
-  options: any;
+  options: Array<Option>;
 }): ReactElement => {
   const provider = useWalletProvider();
 
@@ -48,7 +48,7 @@ const OptionTable = ({
         </TableRow>
       </TableHead>
       <TableBody>
-        {options.map((option: any) => (
+        {options.map((option: Option) => (
           <OptionRow
             key={option.id}
             option={option}

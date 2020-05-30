@@ -1,12 +1,13 @@
 import { Contract } from 'ethers';
 
+import { Provider } from 'ethers/providers';
 import OptionsFactory from '../abis/OptionsFactory.json';
 import Options from '../abis/Options.json';
 
 import { Address } from '../types/types';
 
 const getOptionContract = async (
-  provider: any,
+  provider: Provider,
   factoryAddress: Address,
   poolToken: Address,
   paymentToken: Address,

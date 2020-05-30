@@ -4,7 +4,7 @@ import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 
 import { ethers, Contract } from 'ethers';
-import { Web3Provider } from 'ethers/providers';
+import { Web3Provider, Log } from 'ethers/providers';
 import { CircularProgress } from '@material-ui/core';
 import OptionsTable from '../components/OptionTable/OptionTable';
 import Options from '../abis/Options.json';
@@ -12,6 +12,7 @@ import Options from '../abis/Options.json';
 import { useAddress, useWalletProvider } from '../contexts/OnboardContext';
 
 import getOptionContract from '../utils/getOptionContract';
+import { Option, OptionState } from '../types/types';
 
 const useStyles = makeStyles((theme) => ({
   layout: {
@@ -40,15 +41,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const getOptions = async (provider: Web3Provider, optionMarket: Contract, filter: object) => {
+const getOptions = async (provider: Web3Provider, optionMarket: Contract, filter: object): Promise<Array<Option>> => {
   const logs = await provider.getLogs(filter);
   const iface = new ethers.utils.Interface(Options.abi);
 
   return Promise.all(
     logs.map(
-      async (log: any): Promise<any> => {
-        const optionId = iface.parseLog(log).values.optionId.toString();
-        return { optionId, ...(await optionMarket.options(optionId)) };
+      async (log: Log): Promise<Option> => {
+        const id = iface.parseLog(log).values.optionId.toString();
+        return { id, ...(await optionMarket.options(id)) };
       },
     ),
   );
@@ -59,7 +60,7 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
   const userAddress = useAddress();
   const provider = useWalletProvider();
 
-  const [options, setOptions] = useState<Array<any>>([]);
+  const [options, setOptions] = useState<Array<Option>>([]);
   const [optionContract, setOptionContract] = useState<Contract | null>();
 
   useEffect(() => {
@@ -85,8 +86,8 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
 
           getOptions(etherProvider, optionMarket, filter).then((newoptions) =>
             setOptions(
-              newoptions.filter((option: any) => {
-                return option.state === 0;
+              newoptions.filter(({ state }: { state: OptionState }) => {
+                return state === 0;
               }),
             ),
           );
