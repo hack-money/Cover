@@ -82,7 +82,9 @@ const PoolCardContents = ({
 
   return (
     <Grid container direction="column" alignContent="center" justify="space-around" spacing={3}>
-      <Grid item>Use this page to write options by adding liquidity to the pool. You will be minted LP tokens in return</Grid>
+      <Grid item>
+        Use this page to write options by adding liquidity to the pool. You will be minted LP tokens in return
+      </Grid>
       <Grid item>Pool Address: {poolContract && poolContract.address}</Grid>
       <Grid item>{`Total Pool Liquidity: ${totalLiquidity.toString()} ${
         tokens[poolToken] ? tokens[poolToken].symbol : ''
