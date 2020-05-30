@@ -69,7 +69,7 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
         const etherProvider = new Web3Provider(provider);
         try {
           const optionMarket = await getOptionContract(
-            etherProvider.getSigner(),
+            etherProvider,
             props.factoryAddress,
             props.poolToken,
             props.paymentToken,

@@ -9,7 +9,7 @@ import { Web3Provider } from 'ethers/providers';
 import IERC20 from '../abis/IERC20.json';
 
 import getOptionContract from '../utils/getOptionContract';
-import { useWallet } from '../contexts/OnboardContext';
+import { useWalletProvider } from '../contexts/OnboardContext';
 import tokens from '../constants/tokens';
 
 const useStyles = makeStyles((theme) => ({
@@ -51,7 +51,7 @@ const getFees = async (optionContract: Contract, amount: string, optionType: Opt
 
 const BuyOptionsPage = (props: any): ReactElement | null => {
   const classes = useStyles();
-  const wallet = useWallet();
+  const provider = useWalletProvider();
 
   const [optionContract, setOptionContract] = useState<Contract>();
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Put);
@@ -61,11 +61,11 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
 
   useEffect(() => {
     async function getMarketContract(): Promise<void> {
-      if (props.factoryAddress && wallet.provider) {
-        const signer = new Web3Provider(wallet.provider).getSigner();
+      if (props.factoryAddress && provider) {
+        const ethersProvider = new Web3Provider(provider);
         try {
           const optionMarket = await getOptionContract(
-            signer,
+            ethersProvider,
             props.factoryAddress,
             props.poolToken,
             props.paymentToken,
@@ -79,7 +79,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
       }
     }
     getMarketContract();
-  }, [wallet, props.factoryAddress, props.poolToken, props.paymentToken]);
+  }, [provider, props.factoryAddress, props.poolToken, props.paymentToken]);
 
   useEffect(() => {
     if (optionContract) {
@@ -90,7 +90,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
   }, [optionContract, amount, optionType]);
 
   const approveFunds = (approvalAmount: string): void => {
-    const signer = new Web3Provider(wallet.provider).getSigner();
+    const signer = new Web3Provider(provider).getSigner();
     const token = new Contract(props.paymentToken, IERC20.abi, signer);
     if (optionContract) token.approve(optionContract.address, approvalAmount);
   };
