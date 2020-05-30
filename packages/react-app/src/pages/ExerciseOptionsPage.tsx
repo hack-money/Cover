@@ -1,23 +1,18 @@
 import React, { ReactElement, useEffect, useState } from 'react';
-import moment from 'moment';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
 
 import { ethers, Contract } from 'ethers';
-import { Web3Provider } from 'ethers/providers';
+import { Web3Provider, Log } from 'ethers/providers';
+import { CircularProgress } from '@material-ui/core';
+import OptionsTable from '../components/OptionTable/OptionTable';
 import Options from '../abis/Options.json';
-import IERC20 from '../abis/IERC20.json';
 
-import { useAddress, useWallet } from '../contexts/OnboardContext';
+import { useAddress, useWalletProvider } from '../contexts/OnboardContext';
 
 import getOptionContract from '../utils/getOptionContract';
+import { Option, OptionState } from '../types/types';
 
 const useStyles = makeStyles((theme) => ({
   layout: {
@@ -46,15 +41,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const getOptions = async (provider: Web3Provider, optionMarket: Contract, filter: object) => {
+const getOptions = async (provider: Web3Provider, optionMarket: Contract, filter: object): Promise<Array<Option>> => {
   const logs = await provider.getLogs(filter);
   const iface = new ethers.utils.Interface(Options.abi);
 
   return Promise.all(
     logs.map(
-      async (log: any): Promise<any> => {
-        const optionId = iface.parseLog(log).values.optionId.toString();
-        return { optionId, ...(await optionMarket.options(optionId)) };
+      async (log: Log): Promise<Option> => {
+        const id = iface.parseLog(log).values.optionId.toString();
+        return { id, ...(await optionMarket.options(id)) };
       },
     ),
   );
@@ -63,18 +58,18 @@ const getOptions = async (provider: Web3Provider, optionMarket: Contract, filter
 const ExerciseOptionsPage = (props: any): ReactElement => {
   const classes = useStyles();
   const userAddress = useAddress();
-  const wallet = useWallet();
+  const provider = useWalletProvider();
 
-  const [options, setOptions] = useState<Array<any>>([]);
+  const [options, setOptions] = useState<Array<Option>>([]);
   const [optionContract, setOptionContract] = useState<Contract | null>();
 
   useEffect(() => {
     async function getPoolContract(): Promise<void> {
-      if (props.factoryAddress && wallet.provider) {
-        const provider = new Web3Provider(wallet.provider);
+      if (props.factoryAddress && provider) {
+        const etherProvider = new Web3Provider(provider);
         try {
           const optionMarket = await getOptionContract(
-            provider.getSigner(),
+            etherProvider,
             props.factoryAddress,
             props.poolToken,
             props.paymentToken,
@@ -89,10 +84,10 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
           };
           console.log('finding logs');
 
-          getOptions(provider, optionMarket, filter).then((newoptions) =>
+          getOptions(etherProvider, optionMarket, filter).then((newoptions) =>
             setOptions(
-              newoptions.filter((option: any) => {
-                return option.state === 0;
+              newoptions.filter(({ state }: { state: OptionState }) => {
+                return state === 0;
               }),
             ),
           );
@@ -103,62 +98,23 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
       }
     }
     getPoolContract();
-  }, [wallet, userAddress, props.factoryAddress, props.poolToken, props.paymentToken]);
+  }, [provider, userAddress, props.factoryAddress, props.poolToken, props.paymentToken]);
 
-  const approveFunds = (amount: string): void => {
-    const signer = new Web3Provider(wallet.provider).getSigner();
-    const token = new Contract(props.paymentToken, IERC20.abi, signer);
-    if (optionContract) token.approve(optionContract.address, amount);
-  };
+  if (!optionContract) {
+    return (
+      <Paper className={`${classes.pageElement} ${classes.paper}`}>
+        <Grid container direction="row" justify="space-around" spacing={3}>
+          <CircularProgress />
+        </Grid>
+      </Paper>
+    );
+  }
 
-  const exerciseOption = (optionId: string): void => {
-    if (optionContract) optionContract.exercise(optionId);
-  };
-
+  console.log(options);
   return (
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="row" justify="space-around" spacing={3}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell align="right">OptionId</TableCell>
-              <TableCell align="right">Start time</TableCell>
-              <TableCell align="right">Expiry time</TableCell>
-              <TableCell align="right"></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {options.length &&
-              options.map((option: any) => {
-                return (
-                  <TableRow key={option.optionId}>
-                    <TableCell align="right">{option.optionId}</TableCell>
-                    <TableCell align="right">{moment.unix(option.startTime).format('DD-MM-YYYY HH:mm')}</TableCell>
-                    <TableCell align="right">{moment.unix(option.expirationTime).format('DD-MM-YYYY HH:mm')}</TableCell>
-                    <TableCell align="right">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={(): void => approveFunds(option.amount.mul(10).toString())}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={(): void => {
-                          console.log('optionId: ', option.optionId);
-                          return exerciseOption(option.optionId);
-                        }}
-                      >
-                        Exercise Option
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
+        <OptionsTable paymentToken={props.paymentToken} optionContract={optionContract} options={options} />
       </Grid>
     </Paper>
   );
