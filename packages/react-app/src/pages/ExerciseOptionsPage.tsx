@@ -1,4 +1,5 @@
 import React, { ReactElement, useEffect, useState } from 'react';
+import moment from 'moment';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
@@ -132,8 +133,8 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
                 return (
                   <TableRow key={option.optionId}>
                     <TableCell align="right">{option.optionId}</TableCell>
-                    <TableCell align="right">{new Date(option.startTime*1000).toString()}</TableCell>
-                    <TableCell align="right">{new Date(option.expirationTime*1000).toString()}</TableCell>
+                    <TableCell align="right">{moment.unix(option.startTime).format('DD-MM-YYYY HH:mm')}</TableCell>
+                    <TableCell align="right">{moment.unix(option.expirationTime).format('DD-MM-YYYY HH:mm')}</TableCell>
                     <TableCell align="right">
                       <Button
                         variant="contained"
@@ -142,10 +143,14 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
                       >
                         Approve
                       </Button>
-                      <Button variant="contained" color="primary" onClick={(): void => {
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={(): void => {
                           console.log('optionId: ', option.optionId);
                           return exerciseOption(option.optionId);
-                        }}>
+                        }}
+                      >
                         Exercise Option
                       </Button>
                     </TableCell>
