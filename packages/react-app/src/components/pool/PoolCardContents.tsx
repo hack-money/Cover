@@ -43,11 +43,11 @@ const PoolCardContents = ({
   useEffect(() => {
     async function getPoolContract(): Promise<void> {
       if (factoryAddress && wallet.provider) {
-        const signer = new Web3Provider(wallet.provider).getSigner();
+        const ethersProvider = new Web3Provider(wallet.provider);
         try {
-          const optionMarket = await getOptionContract(signer, factoryAddress, poolToken, paymentToken);
+          const optionMarket = await getOptionContract(ethersProvider, factoryAddress, poolToken, paymentToken);
           const liquidityPoolAddress = await optionMarket.pool();
-          const pool = new Contract(liquidityPoolAddress, LiquidityPool.abi, signer);
+          const pool = new Contract(liquidityPoolAddress, LiquidityPool.abi, ethersProvider);
           setPoolContract(pool);
 
           pool.getPoolERC20Balance().then((poolBalance: string) => setTotalLiquidity(poolBalance));
