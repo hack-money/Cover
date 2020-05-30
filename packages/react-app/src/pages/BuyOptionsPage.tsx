@@ -1,9 +1,10 @@
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useState, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Button, Grid, Paper, MenuItem, TextField } from '@material-ui/core';
 
 import { Contract } from 'ethers';
 import { Web3Provider } from 'ethers/providers';
+import { bigNumberify, BigNumber } from 'ethers/utils';
 
 // import { Address } from '../types/types';
 import IERC20 from '../abis/IERC20.json';
@@ -44,7 +45,11 @@ enum OptionType {
   Call,
 }
 
-const getFees = async (optionContract: Contract, amount: string, optionType: OptionType): Promise<Array<any>> => {
+const getFees = async (
+  optionContract: Contract,
+  amount: string,
+  optionType: OptionType,
+): Promise<[BigNumber, BigNumber]> => {
   const strikePrice = await optionContract.getPoolTokenPrice(amount);
   return optionContract.calculateFees(60 * 30, amount, strikePrice, optionType);
 };
@@ -55,43 +60,67 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
 
   const [optionContract, setOptionContract] = useState<Contract>();
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Put);
-  const [currentPrice, setCurrentPrice] = useState<string>('');
+  const [currentPrice, setCurrentPrice] = useState<BigNumber>(bigNumberify(0));
   const [amount, setAmount] = useState<string>('');
-  const [premium, setPremium] = useState<string>('0');
+  const [premium, setPremium] = useState<BigNumber>(bigNumberify(0));
+  const [fee, setFee] = useState<BigNumber>(bigNumberify(0));
+
+  const { poolToken, paymentToken, factoryAddress } = props;
+  const poolTokenSymbol = tokens[poolToken].symbol;
+  const paymentTokenSymbol = tokens[paymentToken].symbol;
 
   useEffect(() => {
     async function getMarketContract(): Promise<void> {
-      if (props.factoryAddress && provider) {
+      if (factoryAddress && provider) {
         const ethersProvider = new Web3Provider(provider);
         try {
-          const optionMarket = await getOptionContract(
-            ethersProvider,
-            props.factoryAddress,
-            props.poolToken,
-            props.paymentToken,
-          );
+          const optionMarket = await getOptionContract(ethersProvider, factoryAddress, poolToken, paymentToken);
           setOptionContract(optionMarket);
-          // const price = optionMarket.getPoolTokenPrice('1');
-          // setCurrentPrice(price);
         } catch (e) {
           console.error(e);
         }
       }
     }
     getMarketContract();
-  }, [provider, props.factoryAddress, props.poolToken, props.paymentToken]);
+  }, [provider, factoryAddress, poolToken, paymentToken]);
 
   useEffect(() => {
-    if (optionContract) {
-      getFees(optionContract, amount || '1', optionType).then((fees) => {
-        setPremium(fees[0].add(fees[1]).toString());
-      });
+    async function pullFees(inputAmount: string): Promise<void> {
+      if (optionContract) {
+        const [newPremium, newFee]: [BigNumber, BigNumber] = await getFees(
+          optionContract,
+          inputAmount || '1',
+          optionType,
+        );
+        setPremium(newPremium);
+        setFee(newFee);
+      }
     }
+
+    pullFees(amount);
   }, [optionContract, amount, optionType]);
+
+  const getATMPrice = useCallback(
+    async (inputAmount: string): Promise<void> => {
+      if (!optionContract) return;
+      try {
+        const price: BigNumber = await optionContract.getPoolTokenPrice(parseInt(inputAmount, 10) || '1');
+        console.log(price.toString());
+        setCurrentPrice(price);
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    [optionContract],
+  );
+
+  useEffect(() => {
+    getATMPrice(amount);
+  }, [amount, optionContract, getATMPrice]);
 
   const approveFunds = (approvalAmount: string): void => {
     const signer = new Web3Provider(provider).getSigner();
-    const token = new Contract(props.paymentToken, IERC20.abi, signer);
+    const token = new Contract(paymentToken, IERC20.abi, signer);
     if (optionContract) token.approve(optionContract.address, approvalAmount);
   };
 
@@ -99,34 +128,42 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
     if (optionContract) optionContract.createATM(2 * 86400, purchaseAmount, optionType);
   };
 
-  if (!props.paymentToken || !props.poolToken) return null;
+  if (!paymentToken || !poolToken) return null;
   return (
     <Paper className={`${classes.pageElement} ${classes.paper}`}>
       <Grid container direction="column" alignContent="center" alignItems="center" spacing={3}>
-        <Grid item>
-          {`Option to: `}
-          <TextField select value={optionType} onChange={(event: any): void => setOptionType(event.target.value)}>
-            <MenuItem key={0} value={OptionType.Call}>
-              Buy
-            </MenuItem>
-            <MenuItem key={1} value={OptionType.Put}>
-              Sell
-            </MenuItem>
-          </TextField>
-          <TextField
-            // label=""
-            placeholder=""
-            variant="outlined"
-            value={amount}
-            onChange={(val): void => setAmount(val.target.value)}
-          />
-          {`${tokens[optionType === OptionType.Put ? props.paymentToken : props.poolToken].symbol}`}
+        <Grid container justify="center" alignContent="center" alignItems="center" spacing={1}>
+          <Grid item>{`I want to be able to `}</Grid>
+          <Grid item>
+            <TextField select value={optionType} onChange={(event: any): void => setOptionType(event.target.value)}>
+              <MenuItem key={0} value={OptionType.Call}>
+                buy
+              </MenuItem>
+              <MenuItem key={1} value={OptionType.Put}>
+                sell
+              </MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item>
+            <TextField
+              // label=""
+              placeholder=""
+              variant="outlined"
+              value={amount}
+              onChange={(val): void => setAmount(val.target.value)}
+            />
+          </Grid>
+          <Grid item>{`${optionType === OptionType.Put ? paymentTokenSymbol : poolTokenSymbol} for ${bigNumberify(
+            amount,
+          ).mul(currentPrice)} ${
+            optionType === OptionType.Put ? poolTokenSymbol : paymentTokenSymbol
+          } (${currentPrice} ${poolTokenSymbol}/${paymentTokenSymbol})`}</Grid>
         </Grid>
-        <Grid item>{`A premium of ${premium} ${
-          tokens[props.paymentToken].symbol
-        } will be needed to buy this option`}</Grid>
+        <Grid item>{`It will cost ${premium
+          .add(fee)
+          .toString()} ${paymentTokenSymbol} to buy this option. This consists of a premium of ${premium} ${paymentTokenSymbol} paid to liquidity providers and a ${fee} ${paymentTokenSymbol} operator fee`}</Grid>
       </Grid>
-      <Grid item container spacing={3}>
+      <Grid item container justify="center" spacing={3}>
         <Grid item>
           <Button variant="contained" color="primary" onClick={(): void => approveFunds(amount)}>
             Approve
