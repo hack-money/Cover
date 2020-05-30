@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Paper } from '@material-ui/core';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 
-import SideBar from './components/SideBar';
+import SideBar from './components/sidebar';
 import PoolSelector from './components/PoolSelector';
 
 import AddLiquidityPage from './pages/AddLiquidityPage';
