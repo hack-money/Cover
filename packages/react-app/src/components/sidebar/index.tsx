@@ -1,24 +1,14 @@
-import React, { ReactElement, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { ReactElement } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Avatar from '@material-ui/core/Avatar';
-import AddIcon from '@material-ui/icons/Add';
-import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
-import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
-import HelpIcon from '@material-ui/icons/Help';
-import Blockies from 'react-blockies';
 
-import { useAddress, useSetup } from '../contexts/OnboardContext';
+import WalletButton from './WalletButton';
+import SideBarLinks from './SideBarLinks';
 
 const drawerWidth = 240;
 
@@ -67,22 +57,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const links = [
-  { text: 'Deposit', icon: <AddIcon />, url: '/deposit' },
-  { text: 'Buy Options', icon: <ShoppingCartIcon />, url: '/options/buy' },
-  { text: 'Exercise Options', icon: <SwapHorizIcon />, url: '/options/exercise' },
-];
-
 const SideBar = ({ open, setOpen }: { open: boolean; setOpen: Function }): ReactElement => {
   const classes = useStyles();
-  const setup = useSetup();
-  const userAddress = useAddress();
 
   const toggleDraw = (): void => {
     setOpen(!open);
   };
-
-  useEffect(() => setup('MetaMask'), [setup]);
 
   return (
     <Drawer
@@ -96,30 +76,9 @@ const SideBar = ({ open, setOpen }: { open: boolean; setOpen: Function }): React
         <IconButton onClick={toggleDraw}>{open ? <ChevronLeftIcon /> : <ChevronRightIcon />}</IconButton>
       </div>
       <Divider />
-      {userAddress ? (
-        <ListItem button>
-          <ListItemIcon>
-            <Avatar className={classes.avatar}>
-              <Blockies seed={userAddress} size={10} />
-            </Avatar>
-          </ListItemIcon>
-          <ListItemText primary={`${userAddress.slice(0, 6)}...${userAddress.slice(-5, -1)}`} />
-        </ListItem>
-      ) : (
-        <ListItem button onClick={() => setup()}>
-          <ListItemIcon></ListItemIcon>
-          <ListItemText primary={'Connect to Wallet'} />
-        </ListItem>
-      )}
+      <WalletButton />
       <Divider />
-      <List>
-        {links.map((link, index) => (
-          <ListItem button component={Link} to={link.url} key={index}>
-            <ListItemIcon>{link.icon}</ListItemIcon>
-            <ListItemText primary={link.text} />
-          </ListItem>
-        ))}
-      </List>
+      <SideBarLinks />
     </Drawer>
   );
 };
