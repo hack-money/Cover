@@ -14,16 +14,6 @@ import { useWalletProvider } from '../contexts/OnboardContext';
 import tokens from '../constants/tokens';
 
 const useStyles = makeStyles((theme) => ({
-  layout: {
-    width: 'auto',
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up(1200 + theme.spacing(2) * 2)]: {
-      width: 1200,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-    },
-  },
   paper: {
     padding: theme.spacing(2),
     [theme.breakpoints.up(800 + theme.spacing(3) * 2)]: {

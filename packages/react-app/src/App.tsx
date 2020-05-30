@@ -24,6 +24,16 @@ const useStyles = makeStyles((theme) => ({
       duration: theme.transitions.duration.leavingScreen,
     }),
   },
+  layout: {
+    width: 'auto',
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
+    [theme.breakpoints.up(1200 + theme.spacing(2) * 2)]: {
+      width: 1200,
+      marginLeft: 'auto',
+      marginRight: 'auto',
+    },
+  },
   contentShift: {
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.easeOut,
@@ -61,27 +71,33 @@ const App = (): ReactElement => {
     <div className={classes.root}>
       <Router>
         <SideBar open={open} setOpen={setOpen} />
-        <main className={`${classes.content} ${open ? classes.contentShift : ''}`}>
-          <Paper className={`${classes.pageElement} ${classes.paper}`}>
-            <PoolSelector
-              poolToken={poolToken}
-              setPoolToken={setPoolToken}
-              paymentToken={paymentToken}
-              setPaymentToken={setPaymentToken}
-            />
-          </Paper>
-          <Switch>
-            <Redirect exact path="/" to="/deposit" />
-            <Route exact path="/deposit">
-              <AddLiquidityPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
-            </Route>
-            <Route exact path="/options/buy">
-              <BuyOptionsPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
-            </Route>
-            <Route exact path="/options/exercise">
-              <ExerciseOptionsPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
-            </Route>
-          </Switch>
+        <main className={`${classes.content} ${open ? classes.contentShift : ''} `}>
+          <div className={`${classes.layout}`}>
+            <Paper className={`${classes.pageElement} ${classes.paper}`}>
+              <PoolSelector
+                poolToken={poolToken}
+                setPoolToken={setPoolToken}
+                paymentToken={paymentToken}
+                setPaymentToken={setPaymentToken}
+              />
+            </Paper>
+            <Switch>
+              <Redirect exact path="/" to="/deposit" />
+              <Route exact path="/deposit">
+                <AddLiquidityPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
+              </Route>
+              <Route exact path="/options/buy">
+                <BuyOptionsPage factoryAddress={factoryAddress} poolToken={poolToken} paymentToken={paymentToken} />
+              </Route>
+              <Route exact path="/options/exercise">
+                <ExerciseOptionsPage
+                  factoryAddress={factoryAddress}
+                  poolToken={poolToken}
+                  paymentToken={paymentToken}
+                />
+              </Route>
+            </Switch>
+          </div>
         </main>
       </Router>
     </div>
