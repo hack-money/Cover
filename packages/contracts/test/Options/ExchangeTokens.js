@@ -1,9 +1,6 @@
+const { waffle } = require('@nomiclabs/buidler');
 const { use, expect } = require('chai');
-const {
-    solidity,
-    MockProvider,
-    createFixtureLoader,
-} = require('ethereum-waffle');
+const { solidity, createFixtureLoader } = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
 const { generalTestFixture } = require('../helpers/fixtures');
 
@@ -25,7 +22,7 @@ describe('Exchange token, via Uniswap', async () => {
     let oracle;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
-    const provider = new MockProvider({ gasLimit: 9999999 });
+    const { provider } = waffle;
 
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
 

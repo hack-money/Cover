@@ -1,16 +1,13 @@
+const { waffle } = require('@nomiclabs/buidler');
 const { use, expect } = require('chai');
-const {
-    solidity,
-    createFixtureLoader,
-    MockProvider,
-} = require('ethereum-waffle');
+const { solidity, createFixtureLoader } = require('ethereum-waffle');
 
 const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 
 use(solidity);
 
-const provider = new MockProvider({ gasLimit: 9999999 });
+const { provider } = waffle;
 const [liquidityProvider, optionsBuyer] = provider.getWallets();
 
 const loadFixture = createFixtureLoader(provider, [

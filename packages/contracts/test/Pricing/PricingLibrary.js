@@ -1,5 +1,6 @@
+const { waffle } = require('@nomiclabs/buidler');
 const { use, expect } = require('chai');
-const { deployContract, solidity, MockProvider } = require('ethereum-waffle');
+const { deployContract, solidity } = require('ethereum-waffle');
 
 const Pricing = require('../../build/PricingTest.json');
 const {
@@ -14,7 +15,7 @@ const priceDecimals = 1e8;
 
 describe('Pricing utilities', async () => {
     let pricingContract;
-    const provider = new MockProvider({ gasLimit: 9999999 });
+    const { provider } = waffle;
 
     const [wallet] = provider.getWallets();
 

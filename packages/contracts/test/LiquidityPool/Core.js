@@ -1,9 +1,6 @@
+const { waffle } = require('@nomiclabs/buidler');
 const { use, expect } = require('chai');
-const {
-    solidity,
-    createFixtureLoader,
-    MockProvider,
-} = require('ethereum-waffle');
+const { solidity, createFixtureLoader } = require('ethereum-waffle');
 const { bigNumberify } = require('ethers/utils');
 
 const { generalTestFixture } = require('../helpers/fixtures');
@@ -15,7 +12,7 @@ describe('Core liquidity pool functionality', async () => {
     let poolToken;
     let liquidityPool;
     const numPoolTokens = 20;
-    const provider = new MockProvider({ gasLimit: 9999999 });
+    const { provider } = waffle;
 
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
 

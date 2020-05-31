@@ -1,11 +1,8 @@
+const { waffle } = require('@nomiclabs/buidler');
 const { expect, use } = require('chai');
 const { Contract } = require('ethers');
 const { bigNumberify } = require('ethers/utils');
-const {
-    solidity,
-    createFixtureLoader,
-    MockProvider,
-} = require('ethereum-waffle');
+const { solidity, createFixtureLoader } = require('ethereum-waffle');
 const { optionFactoryFixture } = require('../helpers/fixtures');
 
 const Options = require('../../build/Options.json');
@@ -15,7 +12,7 @@ const { getMarketAddress } = require('../helpers/utilities');
 use(solidity);
 
 describe('OptionsFactory', () => {
-    const provider = new MockProvider({ gasLimit: 9999999 });
+    const { provider } = waffle;
     const [wallet, other] = provider.getWallets();
 
     const loadFixture = createFixtureLoader(provider, [wallet, other]);
