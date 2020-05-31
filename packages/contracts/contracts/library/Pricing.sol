@@ -68,7 +68,7 @@ library Pricing {
             .mul(volatility)
             .mul(squareRoot(duration))
             .mul(amount);
-        return resultOfMuls.div(10).div(100);
+        return resultOfMuls.div(amount).div(10).div(100);
     }
 
     /**
@@ -87,21 +87,20 @@ library Pricing {
     ) internal pure returns (uint256) {
         // intrinsic value per unit, multiplied by number of units
         if (optionTypeInput == 1) {
-            if (strikePrice < currentPrice) {
+            if (strikePrice.mul(amount) < currentPrice) {
                 return 0;
             } else {
                 return
-                    (strikePrice.sub(currentPrice)).mul(amount)
-                    ; // intrinsicValue = (strikePrice - currentPrice) * amount
+                    ((strikePrice.mul(amount)).sub(currentPrice)).mul(amount).div(amount); // intrinsicValue = (strikePrice - currentPrice) * amount
             }
         }
 
         if (optionTypeInput == 0) {
-            if (currentPrice < strikePrice) {
+            if (currentPrice < strikePrice.mul(amount)) {
                 return 0;
             } else {
                 return
-                    (currentPrice.sub(strikePrice)).mul(amount); // intrinsicValue = (currentPrice - strikePrice) * amount
+                    (currentPrice.sub(strikePrice.mul(amount))).mul(amount).div(amount); // intrinsicValue = (currentPrice - strikePrice) * amount
             }
         }
     }
