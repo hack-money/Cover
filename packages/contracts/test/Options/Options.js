@@ -28,6 +28,7 @@ describe('Options functionality', async () => {
     let paymentToken;
     let liquidityPool;
     let optionsContract;
+    let oracle;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
     

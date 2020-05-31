@@ -85,6 +85,6 @@ describe('OptionsFactory', () => {
     it('createMarket:gas', async () => {
         const tx = await factory.createMarket(...tokenAddresses);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(5478217);
+        expect(receipt.gasUsed).to.eq(7207057);
     });
 });

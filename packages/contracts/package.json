@@ -16,7 +16,7 @@
     "build": "waffle .waffle.json",
     "compile": "buidler compile",
     "commit": "git-cz",
-    "clean": "buidler clean",
+    "clean": "shx rm -r build artifacts cache || true",
     "deploy": "buidler run scripts/deploy.js",
     "export": "buidler run scripts/export.js",
     "has:changed": "bash ../monorepo-scripts/ci/hasChanged.sh contracts",
@@ -63,6 +63,7 @@
     "mocha": "^7.1.2",
     "moment": "^2.25.3",
     "prettier": "^2.0.5",
+    "shx": "^0.3.2",
     "web3": "^1.2.7"
   },
   "config": {

@@ -9,9 +9,11 @@ const { generalTestFixture } = require('../helpers/fixtures');
 
 const Options = require('../../build/Options.json');
 const { VALID_DURATION } = require('../helpers/constants');
-const {calcFeeOffChain, calcPremiumOffChain } = require('../Pricing/helpers');
-const { contextForOptionHasActivated, contextForOracleActivated } = require('../helpers/contexts');
-
+const { calcFeeOffChain, calcPremiumOffChain } = require('../Pricing/helpers');
+const {
+    contextForOptionHasActivated,
+    contextForOracleActivated,
+} = require('../helpers/contexts');
 
 use(solidity);
 
@@ -20,6 +22,7 @@ describe('Exchange token, via Uniswap', async () => {
     let paymentToken;
     let liquidityPool;
     let optionsContract;
+    let oracle;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
     const provider = new MockProvider({ gasLimit: 9999999 });
@@ -75,12 +78,6 @@ describe('Exchange token, via Uniswap', async () => {
                 const currentPrice =
                     (amountOutForAmount / amount) * priceDecimals;
 
-                // calculate fees + premiums
-                const platformFeePercentage = 10000;
-                const expectedFee =
-                    calcFeeOffChain(amount, platformFeePercentage) *
-                    (currentPrice / priceDecimals);
-
                 // calculate expected premium offchain
                 const expectedPremium = calcPremiumOffChain(
                     amount,
@@ -115,8 +112,12 @@ describe('Exchange token, via Uniswap', async () => {
                 expect(recoveredOptionId).to.equal(optionId);
                 expect(recoveredPaymentToken).to.equal(paymentToken.address);
                 expect(recoveredPoolToken).to.equal(poolToken.address);
-                expect(recoveredInputAmount.toNumber().toPrecision(3)).to.equal(expectedPremium.toPrecision(3));
-                expect(recoveredOutputAmount.toNumber().toPrecision(1)).to.equal(amountOutForPremium.toNumber().toPrecision(1));
+                expect(recoveredInputAmount.toNumber().toPrecision(3)).to.equal(
+                    expectedPremium.toPrecision(3)
+                );
+                expect(
+                    recoveredOutputAmount.toNumber().toPrecision(1)
+                ).to.equal(amountOutForPremium.toNumber().toPrecision(1));
 
                 const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
 
