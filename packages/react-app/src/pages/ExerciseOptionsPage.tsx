@@ -70,7 +70,7 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
             address: optionMarket.address,
             fromBlock: 7957620,
             toBlock: 'latest',
-            topics: [ethers.utils.id('Create(uint256,address,uint256,uint256)')],
+            ...optionMarket.filters.Create(null, userAddress, null, null),
           };
           console.log('finding logs');
 
