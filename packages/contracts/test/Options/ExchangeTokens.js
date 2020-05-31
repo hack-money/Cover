@@ -82,7 +82,7 @@ describe('Exchange token, via Uniswap', async () => {
                 // calculate expected premium offchain
                 const expectedPremium = calcPremiumOffChain(
                     amount,
-                    currentPrice,
+                    currentPrice * amount,
                     strikePrice,
                     duration,
                     volatility,
@@ -113,8 +113,8 @@ describe('Exchange token, via Uniswap', async () => {
                 expect(recoveredOptionId).to.equal(optionId);
                 expect(recoveredPaymentToken).to.equal(paymentToken.address);
                 expect(recoveredPoolToken).to.equal(poolToken.address);
-                expect(recoveredInputAmount.toNumber().toPrecision(1)).to.equal(
-                    expectedPremium.toPrecision(1)
+                expect(parseInt(recoveredInputAmount, 10)).to.equal(
+                    parseInt(expectedPremium, 10)
                 );
                 expect(
                     recoveredOutputAmount.toNumber().toPrecision(1)
@@ -170,7 +170,7 @@ describe('Exchange token, via Uniswap', async () => {
                         paymentToken.address,
                         strikeAmount,
                         poolToken.address,
-                        513 // TODO: generalise/calculate this expected output
+                        2053 // TODO: generalise/calculate this expected output
                     )
                     .to.emit(optionsContract, 'Exercise')
                     .withArgs(optionID, optionValue);
@@ -180,7 +180,7 @@ describe('Exchange token, via Uniswap', async () => {
                 // Note: finalPoolBalance = initialPoolBalance + uniswap output - funds released to option holder
                 // For call options this is option.amount but for put options this is option.strikeAmount
                 expect(finalPoolBalance).to.equal(
-                    initialPoolBalance.add(513).sub(amount)
+                    initialPoolBalance.add(2053).sub(amount)
                 );
             });
         });

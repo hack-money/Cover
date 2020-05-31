@@ -159,7 +159,7 @@ describe('Options functionality', async () => {
                 // calculate expected premium offchain
                 const expectedPremium = calcPremiumOffChain(
                     amount,
-                    currentPrice,
+                    currentPrice * amount,
                     strikePrice,
                     duration,
                     volatility,
@@ -180,7 +180,7 @@ describe('Options functionality', async () => {
                 expect(recoveredAccount).to.equal(optionsBuyer.address);
 
                 const recoveredFee = eventLogValues.fee;
-                expect(recoveredFee).to.equal(expectedFee);
+                expect(parseInt(recoveredFee, 10)).to.equal(parseInt(expectedFee, 10));
 
                 const recoveredPremium = eventLogValues.premium;
                 expect(recoveredPremium.toNumber().toPrecision(1)).to.equal(expectedPremium.toPrecision(1));

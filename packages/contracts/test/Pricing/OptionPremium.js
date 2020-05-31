@@ -99,8 +99,8 @@ describe('Option premium', async () => {
             ).values.optionId;
             const { premium } = await optionsContract.options(optionID);
 
-            expect(parseFloat(premium.toNumber().toPrecision(4))).to.equal(
-                parseFloat(expectedPremium.toPrecision(4))
+            expect(parseFloat(premium.toNumber().toPrecision(2))).to.equal(
+                parseFloat(expectedPremium.toPrecision(2))
             );
         });
     });

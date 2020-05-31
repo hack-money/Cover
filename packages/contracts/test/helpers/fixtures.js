@@ -137,8 +137,8 @@ async function optionFactoryFixture(provider, [wallet]) {
     ]);
 
     // Add liquidity to Uniswap
-    const token0Amount = expandTo18Decimals(50);
-    const token1Amount = expandTo18Decimals(100);
+    const token0Amount = expandTo18Decimals(100);
+    const token1Amount = expandTo18Decimals(50);
 
     await token0.transfer(pair.address, token0Amount);
     await token1.transfer(pair.address, token1Amount);
@@ -174,8 +174,8 @@ async function generalTestFixture(provider, [liquidityProvider, optionsBuyer]) {
     const paymentToken = token1;
 
     // Add liquidity to Uniswap
-    const token0Amount = expandTo18Decimals(50);
-    const token1Amount = expandTo18Decimals(100);
+    const token0Amount = expandTo18Decimals(100);
+    const token1Amount = expandTo18Decimals(50);
 
     await poolToken.transfer(pair.address, token0Amount);
     await paymentToken.transfer(pair.address, token1Amount);
