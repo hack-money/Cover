@@ -5,7 +5,6 @@ require('dotenv').config({ path: '.env.development' });
 
 usePlugin('@nomiclabs/buidler-waffle');
 
-
 module.exports = {
     solc: {
         version: '0.6.6',
@@ -13,6 +12,9 @@ module.exports = {
             enabled: true,
             runs: 10000,
         },
+    },
+    paths: {
+        artifacts: './build',
     },
     mocha: {
         bail: true,
@@ -27,6 +29,10 @@ module.exports = {
             accounts: [process.env.TESTING_ACCOUNT],
             gas: 8000000,
             gasPrice: 10000000000,
+        },
+        buidlerevm: {
+            blockGasLimit: 100000000,
+            gas: 80000000,
         },
     },
     etherscan: {

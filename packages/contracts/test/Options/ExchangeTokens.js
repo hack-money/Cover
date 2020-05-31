@@ -9,17 +9,21 @@ const { generalTestFixture } = require('../helpers/fixtures');
 
 const Options = require('../../build/Options.json');
 const { VALID_DURATION } = require('../helpers/constants');
-const {calcFeeOffChain, calcPremiumOffChain } = require('../Pricing/helpers');
-const { contextForOptionHasActivated, contextForOracleActivated } = require('../helpers/contexts');
-
+const { calcPremiumOffChain } = require('../Pricing/helpers');
+const {
+    contextForOptionHasActivated,
+    contextForOracleActivated,
+} = require('../helpers/contexts');
 
 use(solidity);
+
 
 describe('Exchange token, via Uniswap', async () => {
     let poolToken;
     let paymentToken;
     let liquidityPool;
     let optionsContract;
+    let oracle;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
     const provider = new MockProvider({ gasLimit: 9999999 });
@@ -62,7 +66,7 @@ describe('Exchange token, via Uniswap', async () => {
                 const priceDecimals = 1e8;
                 const optionId = bigNumberify(0);
                 const duration = VALID_DURATION.asSeconds();
-                const amount = 20;
+                const amount = 100;
                 const optionType = 1; // putOption
                 const volatility = await optionsContract.getVolatility();
                 const strikePrice = 103000000;
@@ -74,12 +78,6 @@ describe('Exchange token, via Uniswap', async () => {
                 );
                 const currentPrice =
                     (amountOutForAmount / amount) * priceDecimals;
-
-                // calculate fees + premiums
-                const platformFeePercentage = 10000;
-                const expectedFee =
-                    calcFeeOffChain(amount, platformFeePercentage) *
-                    (currentPrice / priceDecimals);
 
                 // calculate expected premium offchain
                 const expectedPremium = calcPremiumOffChain(
@@ -95,7 +93,7 @@ describe('Exchange token, via Uniswap', async () => {
                 // expected exchangeToken variables
                 const amountOutForPremium = await oracle.consult(
                     paymentToken.address,
-                    parseInt(expectedPremium)
+                    parseInt(expectedPremium, 10)
                 );
 
                 const initialPoolBalance = await liquidityPool.getPoolERC20Balance();
@@ -115,12 +113,15 @@ describe('Exchange token, via Uniswap', async () => {
                 expect(recoveredOptionId).to.equal(optionId);
                 expect(recoveredPaymentToken).to.equal(paymentToken.address);
                 expect(recoveredPoolToken).to.equal(poolToken.address);
-                expect(recoveredInputAmount.toNumber().toPrecision(3)).to.equal(expectedPremium.toPrecision(3));
-                expect(recoveredOutputAmount.toNumber().toPrecision(1)).to.equal(amountOutForPremium.toNumber().toPrecision(1));
+                expect(recoveredInputAmount.toNumber().toPrecision(1)).to.equal(
+                    expectedPremium.toPrecision(1)
+                );
+                expect(
+                    recoveredOutputAmount.toNumber().toPrecision(1)
+                ).to.equal(amountOutForPremium.toNumber().toPrecision(1));
 
                 const finalPoolBalance = await liquidityPool.getPoolERC20Balance();
 
-                // TODO: work out how to predict
                 expect(finalPoolBalance).to.equal(
                     initialPoolBalance.add(bigNumberify(recoveredOutputAmount))
                 );
@@ -133,7 +134,8 @@ describe('Exchange token, via Uniswap', async () => {
         let optionValue;
 
         beforeEach(async () => {
-            optionValue = 100;
+            await oracle.update();
+            optionValue = 1000;
             const tx = await optionsContract.createATM(
                 VALID_DURATION.asSeconds(),
                 optionValue,
@@ -168,7 +170,7 @@ describe('Exchange token, via Uniswap', async () => {
                         paymentToken.address,
                         strikeAmount,
                         poolToken.address,
-                        51 // TODO: generalise/calculate this expected output
+                        513 // TODO: generalise/calculate this expected output
                     )
                     .to.emit(optionsContract, 'Exercise')
                     .withArgs(optionID, optionValue);
@@ -178,7 +180,7 @@ describe('Exchange token, via Uniswap', async () => {
                 // Note: finalPoolBalance = initialPoolBalance + uniswap output - funds released to option holder
                 // For call options this is option.amount but for put options this is option.strikeAmount
                 expect(finalPoolBalance).to.equal(
-                    initialPoolBalance.add(51).sub(amount)
+                    initialPoolBalance.add(513).sub(amount)
                 );
             });
         });

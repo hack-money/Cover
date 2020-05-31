@@ -2,8 +2,11 @@ const { use, expect } = require('chai');
 const { deployContract, solidity, MockProvider } = require('ethereum-waffle');
 
 const Pricing = require('../../build/PricingTest.json');
-const { calculateExtrinsicValue, calcPremiumOffChain, calcFeeOffChain } = require('./helpers');
-
+const {
+    calculateExtrinsicValue,
+    calcPremiumOffChain,
+    calcFeeOffChain,
+} = require('./helpers');
 
 use(solidity);
 
@@ -30,7 +33,7 @@ describe('Pricing utilities', async () => {
     it('should calculate platform fee', async () => {
         const amount = 500;
         const platformFeePercentage = 2000; // 2%
-        const fee = calcFeeOffChain(amount, platformFeePercentage)
+        const fee = calcFeeOffChain(amount, platformFeePercentage);
         const result = await pricingContract.calculatePlatformFee(
             amount,
             platformFeePercentage
@@ -157,7 +160,6 @@ describe('Pricing utilities', async () => {
                 optionType,
                 priceDecimals
             );
-
             expect(result).to.equal(expectedPremium);
         });
 

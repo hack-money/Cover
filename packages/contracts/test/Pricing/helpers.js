@@ -57,7 +57,7 @@ function calcPremiumOffChain(
         priceDecimals
     );
 
-    return intrinsicValue + extrinsicValue;
+    return (intrinsicValue + extrinsicValue) / 100;
 }
 function calcFeeOffChain(amount, platformFeePercentage) {
     return amount * (platformFeePercentage / 10000);

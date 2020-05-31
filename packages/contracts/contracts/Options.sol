@@ -356,6 +356,7 @@ contract Options is IOptions, Ownable {
     function getPoolTokenPrice(uint256 amount) view public returns (uint256) {
         // TODO: automate the calling of oracle.update() every 24hrs
         // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
+
         uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
         
         // DAI price in terms of USDC

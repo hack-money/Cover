@@ -28,6 +28,7 @@ describe('Options functionality', async () => {
     let paymentToken;
     let liquidityPool;
     let optionsContract;
+    let oracle;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
     
@@ -97,47 +98,51 @@ describe('Options functionality', async () => {
             ).to.be.revertedWith('Duration is too long');
         });
 
-        it('stores a new option', async () => {
-            const amount = 100;
-            const tx = await optionsContract.createATM(
-                VALID_DURATION.asSeconds(),
-                amount,
-                1
-            );
+        contextForOracleActivated(provider, () => {
+            it('stores a new option', async () => {
+                await oracle.update();
+                const amount = 100;
+                const tx = await optionsContract.createATM(
+                    VALID_DURATION.asSeconds(),
+                    amount,
+                    1
+                );
 
-            // Extract optionID from emitted event.
-            const receipt = await tx.wait();
-            const optionID = OptionsInterface.parseLog(
-                receipt.logs[receipt.logs.length - 1]
-            ).values.optionId;
-            const option = await optionsContract.options(optionID);
+                // Extract optionID from emitted event.
+                const receipt = await tx.wait();
+                const optionID = OptionsInterface.parseLog(
+                    receipt.logs[receipt.logs.length - 1]
+                ).values.optionId;
+                const option = await optionsContract.options(optionID);
 
-            expect(option.state).to.equal(0);
-            expect(option.holder).to.equal(optionsBuyer.address);
-            expect(option.strikeAmount).to.equal(103);
-            expect(option.amount).to.equal(amount);
+                expect(option.state).to.equal(0);
+                expect(option.holder).to.equal(optionsBuyer.address);
+                expect(option.strikeAmount).to.equal(103);
+                expect(option.amount).to.equal(amount);
 
-            const { timestamp } = await provider.getBlock(receipt.blockHash);
-            const expectedStart = bigNumberify(timestamp).add(
-                ACTIVATION_DELAY.asSeconds()
-            );
-            const expectedExpiration = bigNumberify(timestamp).add(
-                VALID_DURATION.asSeconds()
-            );
-            expect(expectedStart).to.equal(option.startTime);
-            expect(expectedExpiration).to.equal(option.expirationTime);
+                const { timestamp } = await provider.getBlock(receipt.blockHash);
+                const expectedStart = bigNumberify(timestamp).add(
+                    ACTIVATION_DELAY.asSeconds()
+                );
+                const expectedExpiration = bigNumberify(timestamp).add(
+                    VALID_DURATION.asSeconds()
+                );
+                expect(expectedStart).to.equal(option.startTime);
+                expect(expectedExpiration).to.equal(option.expirationTime);
+            });
         });
 
         contextForOracleActivated(provider, () => {
             it('emits a Create event', async () => {
+                await oracle.update();
+
                 const priceDecimals = 1e8;
                 const duration = VALID_DURATION.asSeconds();
-                const amount = 20;
+                const amount = 300;
                 const optionType = 1; // putOption
                 const volatility = await optionsContract.getVolatility();
                 const strikePrice = 103000000;
 
-                await oracle.update();
                 const amountPoolTokenOut = await oracle.consult(
                     poolToken.address,
                     amount
@@ -145,7 +150,7 @@ describe('Options functionality', async () => {
                 const currentPrice =
                     (amountPoolTokenOut / amount) * priceDecimals;
 
-                const platformFeePercentage = 10000;
+                const platformFeePercentage = await optionsContract.platformPercentageFee();
                 const expectedFee = calcFeeOffChain(
                     amount,
                     platformFeePercentage,
@@ -178,7 +183,7 @@ describe('Options functionality', async () => {
                 expect(recoveredFee).to.equal(expectedFee);
 
                 const recoveredPremium = eventLogValues.premium;
-                expect(recoveredPremium.toNumber().toPrecision(3)).to.equal(expectedPremium.toPrecision(3));
+                expect(recoveredPremium.toNumber().toPrecision(1)).to.equal(expectedPremium.toPrecision(1));
             });
         });
     });
@@ -187,6 +192,7 @@ describe('Options functionality', async () => {
         let optionID;
 
         beforeEach(async () => {
+            await oracle.update();
             const amount = 100;
             const tx = await optionsContract.createATM(
                 VALID_DURATION.asSeconds(),
@@ -208,6 +214,8 @@ describe('Options functionality', async () => {
 
         contextForOptionHasActivated(provider, function () {
             it('reject exercise by non-owner', async () => {
+                await oracle.update();
+
                 await expect(
                     optionsContract
                         .connect(liquidityProvider)
@@ -234,6 +242,7 @@ describe('Options functionality', async () => {
         let optionID2;
 
         beforeEach(async () => {
+            await oracle.update();
             const amount = 100;
             // console.log(optionsContract.interface.events.)
 
