@@ -1,4 +1,5 @@
 import React, { ReactElement } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import moment from 'moment';
 import Button from '@material-ui/core/Button';
 import TableCell from '@material-ui/core/TableCell';
@@ -11,6 +12,12 @@ enum OptionState {
   Expired,
 }
 
+const useStyles = makeStyles((theme) => ({
+  button: {
+    padding: theme.spacing(1),
+  },
+}));
+
 const OptionRow = ({
   option,
   approveFunds,
@@ -20,6 +27,7 @@ const OptionRow = ({
   approveFunds: Function;
   exerciseOption: Function;
 }): ReactElement => {
+  const classes = useStyles();
   const { id, amount, strikeAmount, startTime, expirationTime, state } = option;
   return (
     <TableRow key={id}>
@@ -30,25 +38,30 @@ const OptionRow = ({
       <TableCell align="right">{moment.unix(expirationTime.toNumber()).format('DD-MM-YYYY HH:mm')}</TableCell>
       <TableCell align="right">{OptionState[state]}</TableCell>
       <TableCell align="right">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={(): void => approveFunds()}
-          disabled={state !== OptionState.Active}
-        >
-          Approve
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={(): void => {
-            console.log('optionId: ', id);
-            return exerciseOption();
-          }}
-          disabled={state !== OptionState.Active}
-        >
-          Exercise Option
-        </Button>
+        <div className={classes.button}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={(): void => approveFunds()}
+            disabled={state !== OptionState.Active}
+          >
+            Approve
+          </Button>
+        </div>
+        <div className={classes.button}>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.button}
+            onClick={(): void => {
+              console.log('optionId: ', id);
+              return exerciseOption();
+            }}
+            disabled={state !== OptionState.Active}
+          >
+            Exercise Option
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   );
