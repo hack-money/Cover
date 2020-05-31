@@ -70,9 +70,8 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
             address: optionMarket.address,
             fromBlock: 7957620,
             toBlock: 'latest',
-            topics: [ethers.utils.id('Create(uint256,address,uint256,uint256)')],
+            ...optionMarket.filters.Create(null, userAddress, null, null),
           };
-          console.log('finding logs');
 
           getOptions(etherProvider, optionMarket, filter).then((newoptions) =>
             setOptions(
@@ -82,7 +81,6 @@ const ExerciseOptionsPage = (props: any): ReactElement => {
             ),
           );
         } catch (e) {
-          console.error(e);
           setOptionContract(null);
         }
       }
