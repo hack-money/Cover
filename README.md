@@ -42,4 +42,8 @@ Option premiums are currently calculated using a Black-Scholes approximation tha
 ## Acknowledgements and references
 On-chain options are an exciting, evolving space with lots of innovation. In building the hack, we drew inspiration from several teams including Primitive Finance, Hegic, Opyn and for individual option markets we use a liquidity pool model similar to Hegic.
 
+We found this article <a href ="https://medium.com/coinmonks/insights-from-modeling-stablecoins-a30e732aef1b"> by Ariah Klages-Mundt insightful in the early stages of the project.
+
+
+
 
