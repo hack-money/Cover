@@ -66,8 +66,7 @@ describe('Uniswap Price oracle', async () => {
                 poolToken.address,
                 amount
             );
-            const poolTokenPrice = amountPoolTokenOut / amount;
-            expect(price).to.equal(poolTokenPrice);
+            expect(price).to.equal(amountPoolTokenOut);
         });
     });
 });

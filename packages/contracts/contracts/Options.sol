@@ -342,7 +342,7 @@ contract Options is IOptions, Ownable {
         uint256 currentPrice = getPoolTokenPrice(amount);
 
         currentPrice = currentPrice.mul(priceDecimals);
-        uint256 platformFee = (Pricing.calculatePlatformFee(amount, platformPercentageFee)).mul(currentPrice).div(priceDecimals);
+        uint256 platformFee = (Pricing.calculatePlatformFee(amount, platformPercentageFee)).mul(currentPrice).div(priceDecimals).div(amount);
         uint256 premium = Pricing.calculatePremium(strikePrice, amount, duration, currentPrice, getVolatility(), int(optionTypeInput), priceDecimals);
         return (platformFee, premium);
     }
@@ -356,11 +356,6 @@ contract Options is IOptions, Ownable {
     function getPoolTokenPrice(uint256 amount) view public returns (uint256) {
         // TODO: automate the calling of oracle.update() every 24hrs
         // returns number of USDC tokens that would be exchanged for the `amount` of DAI tokens
-
-        uint256 amountPoolTokenOut = uniswapOracle.consult(address(pool.linkedToken()), amount);
-        
-        // DAI price in terms of USDC
-        uint256 poolTokenPrice = amountPoolTokenOut.div(amount);
-        return poolTokenPrice;
+        return uniswapOracle.consult(address(pool.linkedToken()), amount);
     }
 }

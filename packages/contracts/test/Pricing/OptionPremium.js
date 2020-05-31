@@ -11,7 +11,6 @@ const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 const { calcPremiumOffChain } = require('./helpers');
 
-
 use(solidity);
 
 const provider = new MockProvider({ gasLimit: 9999999 });
@@ -99,8 +98,8 @@ describe('Option premium', async () => {
             ).values.optionId;
             const { premium } = await optionsContract.options(optionID);
 
-            expect(parseFloat(premium.toNumber().toPrecision(4))).to.equal(
-                parseFloat(expectedPremium.toPrecision(4))
+            expect(parseFloat(premium.toNumber().toPrecision(2))).to.equal(
+                parseFloat(expectedPremium.toPrecision(2))
             );
         });
     });

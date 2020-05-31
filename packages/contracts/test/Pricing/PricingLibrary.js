@@ -52,7 +52,7 @@ describe('Pricing utilities', async () => {
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 optionType
             );
             expect(result).to.equal(intrinsicValue);
@@ -68,7 +68,7 @@ describe('Pricing utilities', async () => {
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 optionType
             );
             expect(result).to.equal(intrinsicValue);
@@ -84,7 +84,7 @@ describe('Pricing utilities', async () => {
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 optionType
             );
             expect(result).to.equal(intrinsicValue);
@@ -100,7 +100,7 @@ describe('Pricing utilities', async () => {
             const result = await pricingContract.calculateIntrinsicValue(
                 strikePrice,
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 optionType
             );
             expect(result).to.equal(intrinsicValue);
@@ -116,14 +116,14 @@ describe('Pricing utilities', async () => {
 
             const extrinsicValue = calculateExtrinsicValue(
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 duration,
                 volatility,
                 priceDecimals
             );
             const result = await pricingContract.calculateExtrinsicValue(
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 duration,
                 volatility
             );
@@ -137,14 +137,14 @@ describe('Pricing utilities', async () => {
             // Scenario: Out of the money PUT option
             const optionType = 1;
             const strikePrice = 180 * priceDecimals;
-            const amount = 100e6;
+            const amount = 100;
             const currentPrice = 200 * priceDecimals;
             const duration = 16;
             const volatility = 6;
 
             const expectedPremium = calcPremiumOffChain(
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 strikePrice,
                 duration,
                 volatility,
@@ -155,26 +155,29 @@ describe('Pricing utilities', async () => {
                 strikePrice,
                 amount,
                 duration,
-                currentPrice,
+                currentPrice * amount,
                 volatility,
                 optionType,
                 priceDecimals
             );
-            expect(result).to.equal(expectedPremium);
+
+            expect(parseInt(result, 10)).to.equal(
+                parseInt(expectedPremium, 10)
+            );
         });
 
         it('should calculate premium of an option, has intrinsic value', async () => {
             // Scenario: In the money PUT option
             const optionType = 1;
             const strikePrice = 200 * priceDecimals;
-            const amount = 100e6;
+            const amount = 100;
             const currentPrice = 180 * priceDecimals;
             const duration = 16;
             const volatility = 6;
 
             const expectedPremium = calcPremiumOffChain(
                 amount,
-                currentPrice,
+                currentPrice * amount,
                 strikePrice,
                 duration,
                 volatility,
@@ -186,13 +189,15 @@ describe('Pricing utilities', async () => {
                 strikePrice,
                 amount,
                 duration,
-                currentPrice,
+                currentPrice * amount,
                 volatility,
                 optionType,
                 priceDecimals
             );
 
-            expect(result).to.equal(expectedPremium);
+            expect(parseInt(result, 10)).to.equal(
+                parseInt(expectedPremium, 10)
+            );
         });
     });
 });

@@ -6,7 +6,8 @@ function calculateExtrinsicValue(
     priceDecimals
 ) {
     const valuePerAmount =
-        0.4 * currentPrice * Math.sqrt(duration) * (volatility / 100);
+        (0.4 * currentPrice * Math.sqrt(duration) * (volatility / 100)) /
+        amount;
     return (valuePerAmount * amount) / priceDecimals;
 }
 
@@ -19,17 +20,17 @@ function calculateIntrinsicValue(
     putOption
 ) {
     if (putOption === 1) {
-        if (strikePrice < currentPrice) {
+        if (strikePrice * amount < currentPrice) {
             return 0;
         }
-        return ((strikePrice - currentPrice) / priceDecimals) * amount;
+        return (strikePrice * amount - currentPrice) / priceDecimals;
     }
 
     if (putOption === 0) {
-        if (currentPrice < strikePrice) {
+        if (currentPrice < strikePrice * amount) {
             return 0;
         }
-        return ((currentPrice - strikePrice) / priceDecimals) * amount;
+        return (currentPrice - strikePrice * amount) / priceDecimals;
     }
 }
 
