@@ -11,7 +11,6 @@ const { generalTestFixture } = require('../helpers/fixtures');
 const { contextForOracleActivated } = require('../helpers/contexts');
 const { calcPremiumOffChain } = require('./helpers');
 
-
 use(solidity);
 
 const provider = new MockProvider({ gasLimit: 9999999 });

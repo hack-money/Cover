@@ -17,7 +17,6 @@ const {
 
 use(solidity);
 
-
 describe('Exchange token, via Uniswap', async () => {
     let poolToken;
     let paymentToken;

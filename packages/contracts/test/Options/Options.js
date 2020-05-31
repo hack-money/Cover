@@ -1,5 +1,9 @@
 const { use, expect } = require('chai');
-const { solidity, createFixtureLoader, MockProvider } = require('ethereum-waffle');
+const {
+    solidity,
+    createFixtureLoader,
+    MockProvider,
+} = require('ethereum-waffle');
 const { bigNumberify, Interface } = require('ethers/utils');
 
 const {
@@ -20,7 +24,6 @@ const {
     contextForOracleActivated,
 } = require('../helpers/contexts');
 
-
 use(solidity);
 
 describe('Options functionality', async () => {
@@ -31,11 +34,10 @@ describe('Options functionality', async () => {
     let oracle;
     const numPoolTokens = 2000;
     const numPaymentTokens = 2000;
-    
+
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [liquidityProvider, optionsBuyer] = provider.getWallets();
     const OptionsInterface = new Interface(Options.abi);
-
 
     const loadFixture = createFixtureLoader(provider, [
         liquidityProvider,
@@ -120,7 +122,9 @@ describe('Options functionality', async () => {
                 expect(option.strikeAmount).to.equal(103);
                 expect(option.amount).to.equal(amount);
 
-                const { timestamp } = await provider.getBlock(receipt.blockHash);
+                const { timestamp } = await provider.getBlock(
+                    receipt.blockHash
+                );
                 const expectedStart = bigNumberify(timestamp).add(
                     ACTIVATION_DELAY.asSeconds()
                 );
@@ -151,10 +155,9 @@ describe('Options functionality', async () => {
                     (amountPoolTokenOut / amount) * priceDecimals;
 
                 const platformFeePercentage = await optionsContract.platformPercentageFee();
-                const expectedFee = calcFeeOffChain(
-                    amount,
-                    platformFeePercentage,
-                ) * (currentPrice / priceDecimals);
+                const expectedFee =
+                    calcFeeOffChain(amount, platformFeePercentage) *
+                    (currentPrice / priceDecimals);
 
                 // calculate expected premium offchain
                 const expectedPremium = calcPremiumOffChain(
@@ -167,12 +170,16 @@ describe('Options functionality', async () => {
                     optionType
                 );
 
-                const tx = await optionsContract.createATM(duration, amount, optionType)
+                const tx = await optionsContract.createATM(
+                    duration,
+                    amount,
+                    optionType
+                );
                 const receipt = await tx.wait();
                 const eventLogValues = OptionsInterface.parseLog(
                     receipt.logs[receipt.logs.length - 1]
                 ).values;
-                
+
                 const recoveredOptionId = eventLogValues.optionId;
                 expect(recoveredOptionId).to.equal(0);
 
@@ -180,10 +187,14 @@ describe('Options functionality', async () => {
                 expect(recoveredAccount).to.equal(optionsBuyer.address);
 
                 const recoveredFee = eventLogValues.fee;
-                expect(parseInt(recoveredFee, 10)).to.equal(parseInt(expectedFee, 10));
+                expect(parseInt(recoveredFee, 10)).to.equal(
+                    parseInt(expectedFee, 10)
+                );
 
                 const recoveredPremium = eventLogValues.premium;
-                expect(recoveredPremium.toNumber().toPrecision(1)).to.equal(expectedPremium.toPrecision(1));
+                expect(recoveredPremium.toNumber().toPrecision(1)).to.equal(
+                    expectedPremium.toPrecision(1)
+                );
             });
         });
     });

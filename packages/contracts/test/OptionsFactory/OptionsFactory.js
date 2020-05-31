@@ -14,7 +14,6 @@ const { getMarketAddress } = require('../helpers/utilities');
 
 use(solidity);
 
-
 describe('OptionsFactory', () => {
     const provider = new MockProvider({ gasLimit: 9999999 });
     const [wallet, other] = provider.getWallets();
