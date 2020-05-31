@@ -1,5 +1,6 @@
 import React, { ReactElement, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import { Paper } from '@material-ui/core';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 
@@ -69,6 +70,7 @@ const App = (): ReactElement => {
 
   return (
     <div className={classes.root}>
+      <CssBaseline />
       <Router>
         <SideBar open={open} setOpen={setOpen} />
         <main className={`${classes.content} ${open ? classes.contentShift : ''} `}>
