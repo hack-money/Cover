@@ -1,10 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import { ThemeProvider } from '@material-ui/core/styles';
+
 import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/client';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import OnboardProvider from './contexts/OnboardContext';
+import theme from './theme';
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
@@ -14,11 +17,13 @@ const client = new ApolloClient({
 });
 
 ReactDOM.render(
-  <OnboardProvider>
-    <ApolloProvider client={client}>
-      <App />
-    </ApolloProvider>
-  </OnboardProvider>,
+  <ThemeProvider theme={theme}>
+    <OnboardProvider>
+      <ApolloProvider client={client}>
+        <App />
+      </ApolloProvider>
+    </OnboardProvider>
+  </ThemeProvider>,
   document.getElementById('root'),
 );
 
