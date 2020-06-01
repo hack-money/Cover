@@ -52,6 +52,8 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Put);
   const [expectedOutput, setExpectedOutput] = useState<BigNumber>(bigNumberify(0));
   const [amount, setAmount] = useState<string>('');
+  const [numWeeks, setNumWeeks] = useState<number>(1);
+
   const [premium, setPremium] = useState<BigNumber>(bigNumberify(0));
   const [fee, setFee] = useState<BigNumber>(bigNumberify(0));
 
@@ -114,14 +116,23 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
   };
 
   const purchaseOption = (purchaseAmount: string): void => {
-    if (optionContract) optionContract.createATM(2 * 86400, purchaseAmount, optionType);
+    if (optionContract)
+      optionContract.create(
+        86400 * 7 * numWeeks,
+        purchaseAmount,
+        bigNumberify(expectedOutput)
+          .mul(10 ** 8)
+          .div(amount || 1),
+        optionType,
+      );
   };
 
   const currentPrice =
     bigNumberify(expectedOutput)
-      .mul(100000)
+      .mul(10 ** 8)
       .div(amount || 1)
-      .toNumber() / 100000;
+      .toNumber() /
+    10 ** 8;
 
   if (!paymentToken || !poolToken) return null;
   return (
@@ -151,6 +162,14 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
           <Grid item>{`${optionType === OptionType.Put ? paymentTokenSymbol : poolTokenSymbol} for ${expectedOutput} ${
             optionType === OptionType.Put ? poolTokenSymbol : paymentTokenSymbol
           } (${currentPrice} ${poolTokenSymbol}/${paymentTokenSymbol})`}</Grid>
+          <Grid item>sometime in the next</Grid>
+          <Grid item>
+            <TextField select value={numWeeks} onChange={(event: any): void => setNumWeeks(event.target.value)}>
+              <MenuItem value={1}>1 week</MenuItem>
+              <MenuItem value={2}>2 weeks</MenuItem>
+              <MenuItem value={4}>4 weeks</MenuItem>
+            </TextField>
+          </Grid>
         </Grid>
         <Grid item>{`It will cost ${premium
           .add(fee)
