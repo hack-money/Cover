@@ -112,7 +112,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
   const approveFunds = (approvalAmount: string): void => {
     const signer = new Web3Provider(provider).getSigner();
     const token = new Contract(paymentToken, IERC20.abi, signer);
-    if (optionContract) token.approve(optionContract.address, approvalAmount);
+    if (optionContract) token.approve(optionContract.address, bigNumberify(approvalAmount).mul(10).toString());
   };
 
   const purchaseOption = (purchaseAmount: string): void => {
