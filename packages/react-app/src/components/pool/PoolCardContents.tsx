@@ -47,7 +47,7 @@ const PoolCardContents = ({
         try {
           const optionMarket = await getOptionContract(ethersProvider, factoryAddress, poolToken, paymentToken);
           const liquidityPoolAddress = await optionMarket.pool();
-          const pool = new Contract(liquidityPoolAddress, LiquidityPool.abi, ethersProvider);
+          const pool = new Contract(liquidityPoolAddress, LiquidityPool.abi, ethersProvider.getSigner());
           setPoolContract(pool);
 
           pool.getPoolERC20Balance().then((poolBalance: string) => setTotalLiquidity(poolBalance));
