@@ -50,7 +50,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
 
   const [optionContract, setOptionContract] = useState<Contract>();
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Put);
-  const [currentPrice, setCurrentPrice] = useState<BigNumber>(bigNumberify(0));
+  const [expectedOutput, setExpectedOutput] = useState<BigNumber>(bigNumberify(0));
   const [amount, setAmount] = useState<string>('');
   const [premium, setPremium] = useState<BigNumber>(bigNumberify(0));
   const [fee, setFee] = useState<BigNumber>(bigNumberify(0));
@@ -95,8 +95,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
       if (!optionContract) return;
       try {
         const price: BigNumber = await optionContract.getPoolTokenPrice(parseInt(inputAmount, 10) || '1');
-        console.log(price.toString());
-        setCurrentPrice(price);
+        setExpectedOutput(price);
       } catch (e) {
         console.log(e);
       }
@@ -117,6 +116,12 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
   const purchaseOption = (purchaseAmount: string): void => {
     if (optionContract) optionContract.createATM(2 * 86400, purchaseAmount, optionType);
   };
+
+  const currentPrice =
+    bigNumberify(expectedOutput)
+      .mul(100000)
+      .div(amount || 1)
+      .toNumber() / 100000;
 
   if (!paymentToken || !poolToken) return null;
   return (
@@ -143,9 +148,7 @@ const BuyOptionsPage = (props: any): ReactElement | null => {
               onChange={(val): void => setAmount(val.target.value)}
             />
           </Grid>
-          <Grid item>{`${optionType === OptionType.Put ? paymentTokenSymbol : poolTokenSymbol} for ${bigNumberify(
-            amount,
-          ).mul(currentPrice)} ${
+          <Grid item>{`${optionType === OptionType.Put ? paymentTokenSymbol : poolTokenSymbol} for ${expectedOutput} ${
             optionType === OptionType.Put ? poolTokenSymbol : paymentTokenSymbol
           } (${currentPrice} ${poolTokenSymbol}/${paymentTokenSymbol})`}</Grid>
         </Grid>
