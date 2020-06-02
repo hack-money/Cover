@@ -6,7 +6,7 @@ const tokens: TokenList = {
   '0xf80a32a835f79d7787e8a8ee5721d0feafd78108': {
     symbol: 'DAI',
   },
-  '0x851def71f0e6a903375c1e536bd9ff1684bad802': {
+  '0xfa6adcff6a90c11f31bc9bb59ec0a6efb38381c6': {
     symbol: 'USDC',
   },
   '0xc374eB17f665914c714Ac4cdC8AF3a3474228cc5': {
@@ -18,7 +18,7 @@ const tokens: TokenList = {
   '0xb404c51bbc10dcbe948077f18a4b8e553d160084': {
     symbol: 'USDT',
   },
-  '0xfa6adcff6a90c11f31bc9bb59ec0a6efb38381c6': {
+  '0x851def71f0e6a903375c1e536bd9ff1684bad802': {
     symbol: 'BUSD',
   },
   '0x85b24b3517e3ac7bf72a14516160541a60cff19d': {
