@@ -2782,10 +2782,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-2.5.1.tgz#c76e3fc57aa224da3718ec351812a4251289db31"
   integrity sha512-qIy6tLx8rtybEsIOAlrM4J/85s2q2nPkDqj/Rx46VakBZ0LwtFhXIVub96LXHczQX0vaqmAueDqNPXtbSXSaYQ==
 
-"@openzeppelin/contracts@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.0.1.tgz#2f327f77d16b43f14674086b2b634bda38cb0838"
-  integrity sha512-uSrD7hZ0ViuHGqHZbeHawZBi/uy7aBiNramXAt2dFFuSuoU4u9insS3V3zdVfOnYSPreUo636xSOuQIFN4//HA==
+"@openzeppelin/contracts@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.2.tgz#4e889c9c66e736f7de189a53f8ba5b8d789425c2"
+  integrity sha512-NyJV7sJgoGYqbtNUWgzzOGW4T6rR19FmX1IJgXGdapGPWsuMelGJn9h03nos0iqfforCbCB0iYIR0MtIuIFLLw==
 
 "@portis/eth-json-rpc-middleware@^4.1.2":
   version "4.1.2"
